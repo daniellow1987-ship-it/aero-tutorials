@@ -1,0 +1,592 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>BITE Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&family=Merriweather:wght@700;900&display=swap">
+
+<style>
+:root{
+  --ground:#EDF1F6; --surface:#FFFFFF; --surface2:#E2EAF2; --raise:#F6F9FC;
+  --ink:#0C1C33; --ink2:#44586E; --ink3:#6C8098;
+  --line:#C5D3E1; --line2:#A7BBD0;
+  --accent:#0A6591; --accent-ink:#FFFFFF; --accent-soft:#D8EBF7;
+  --warn:#A4560B; --warn-soft:#FAEAD3;
+  --crit:#9B2C2C; --crit-soft:#F8E3E3;
+  --shadow:0 1px 2px rgba(12,28,51,.10), 0 10px 26px -14px rgba(12,28,51,.24);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0A1728; --surface:#112642; --surface2:#16324F; --raise:#14294A;
+    --ink:#FDFBF7; --ink2:#AEC0D6; --ink3:#7E93AD;
+    --line:#24446B; --line2:#2F5680;
+    --accent:#38BDF8; --accent-ink:#06243A; --accent-soft:#103351;
+    --warn:#FBBF24; --warn-soft:#3A2D0C;
+    --crit:#F87171; --crit-soft:#3B1717;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.72);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0A1728; --surface:#112642; --surface2:#16324F; --raise:#14294A;
+  --ink:#FDFBF7; --ink2:#AEC0D6; --ink3:#7E93AD;
+  --line:#24446B; --line2:#2F5680;
+  --accent:#38BDF8; --accent-ink:#06243A; --accent-soft:#103351;
+  --warn:#FBBF24; --warn-soft:#3A2D0C;
+  --crit:#F87171; --crit-soft:#3B1717;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.72);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1160px; margin:0 auto; padding-inline:16px; padding-block:28px 64px;}
+h1,h2,h3{font-family:Merriweather,Georgia,serif; text-wrap:balance; margin:0;}
+.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+
+header.top{
+  display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;
+  justify-content:space-between; border-bottom:2px solid var(--accent);
+  padding-bottom:18px; margin-bottom:26px;
+}
+header.top h1{font-size:clamp(26px,4.4vw,38px); font-weight:900; letter-spacing:-.01em;}
+header.top p{margin:6px 0 0; color:var(--ink2); max-width:62ch;}
+.eyebrow{
+  font-family:"JetBrains Mono",monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:8px;
+}
+.themebtn{
+  background:var(--surface); color:var(--ink2); border:1px solid var(--line);
+  border-radius:999px; padding:7px 14px; font-size:12px; font-weight:500;
+  font-family:inherit; cursor:pointer; white-space:nowrap;
+}
+.themebtn:hover{border-color:var(--accent); color:var(--accent)}
+
+.step{display:flex; align-items:baseline; gap:10px; margin:0 0 13px;}
+.step .n{
+  font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700;
+  color:var(--accent-ink); background:var(--accent);
+  width:22px; height:22px; border-radius:5px;
+  display:inline-flex; align-items:center; justify-content:center;
+  flex:0 0 auto; transform:translateY(1px);
+}
+.step h2{font-size:18px;}
+.step .note{color:var(--ink3); font-size:12.5px; margin-left:auto; text-align:right;}
+
+.cols{display:grid; grid-template-columns:minmax(0,340px) minmax(0,1fr); gap:22px; align-items:start;}
+@media (max-width:880px){ .cols{grid-template-columns:1fr} }
+section{margin-bottom:30px;}
+
+/* ---------- technical log ---------- */
+.log{display:flex; flex-direction:column; gap:8px;}
+.snag{
+  text-align:left; cursor:pointer; font-family:inherit; font-size:14px; color:var(--ink);
+  background:var(--surface); border:1px solid var(--line);
+  border-left:3px solid var(--line2); border-radius:8px; padding:11px 12px; display:block;
+}
+.snag:hover{border-color:var(--line2)}
+.snag[aria-pressed="true"]{
+  border-color:var(--accent); border-left-color:var(--accent);
+  background:var(--accent-soft); box-shadow:var(--shadow);
+}
+.snag .ata{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  letter-spacing:.08em; color:var(--ink3); display:block; margin-bottom:5px;
+}
+.snag .st{font-weight:700; display:block; line-height:1.32; margin-bottom:3px;}
+.snag .done{
+  font-family:"JetBrains Mono",monospace; font-size:9.5px; letter-spacing:.06em;
+  color:var(--accent); display:block; margin-top:5px;
+}
+
+/* ---------- workspace ---------- */
+.panel{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:16px; box-shadow:var(--shadow);
+}
+.reportbox{
+  background:var(--surface2); border-left:3px solid var(--ink3);
+  border-radius:0 8px 8px 0; padding:12px 14px; margin-bottom:18px;
+}
+.reportbox .rh{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink3); margin-bottom:6px;
+}
+.reportbox p{margin:0; font-size:14.5px; line-height:1.55;}
+
+.tests{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:8px;}
+.test{
+  text-align:left; cursor:pointer; font-family:inherit; color:var(--ink);
+  background:var(--raise); border:1px solid var(--line); border-radius:8px;
+  padding:10px 11px; font-size:13px;
+}
+.test:hover{border-color:var(--accent)}
+.test[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft);}
+.test b{
+  font-family:"JetBrains Mono",monospace; font-size:12px; display:block;
+  margin-bottom:4px; letter-spacing:.02em;
+}
+.test span{color:var(--ink2); font-size:12px; line-height:1.4; display:block;}
+
+.actions{display:flex; flex-wrap:wrap; gap:9px; align-items:center; margin-top:14px;}
+.run{
+  font-family:inherit; font-size:14.5px; font-weight:700; cursor:pointer;
+  background:var(--accent); color:var(--accent-ink); border:1px solid var(--accent);
+  border-radius:8px; padding:11px 20px;
+}
+.run:hover{filter:brightness(1.08)}
+.run:disabled{opacity:.45; cursor:not-allowed; filter:none;}
+.ghost{
+  font-family:inherit; font-size:13px; cursor:pointer; color:var(--ink2);
+  background:transparent; border:1px solid var(--line); border-radius:8px; padding:10px 15px;
+}
+.ghost:hover{border-color:var(--accent); color:var(--accent)}
+
+/* ---------- terminal readout ---------- */
+.readout{
+  margin-top:16px; background:var(--surface2); border:1px solid var(--line);
+  border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 16px;
+}
+.rohead{
+  display:flex; flex-wrap:wrap; gap:8px; align-items:baseline;
+  border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:11px;
+  font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.rohead .rt{font-weight:700; color:var(--accent);}
+.rohead .rs{color:var(--ink3); margin-left:auto;}
+.entry{display:flex; gap:12px; padding:9px 0; border-bottom:1px dotted var(--line);}
+.entry:last-of-type{border-bottom:none; padding-bottom:0;}
+.entry .ei{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  color:var(--ink3); flex:0 0 68px; padding-top:3px; letter-spacing:.04em;
+}
+.entry .et{flex:1; font-size:14px; line-height:1.55;}
+.hint{margin:0; color:var(--ink3); font-size:13.5px; line-height:1.55;}
+
+/* ---------- disposition ---------- */
+.dispo{display:flex; flex-wrap:wrap; gap:9px; margin-top:8px;}
+.dbtn{
+  font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer;
+  background:var(--raise); color:var(--ink); border:1px solid var(--line2);
+  border-radius:8px; padding:10px 16px;
+}
+.dbtn:hover{border-color:var(--accent)}
+.dbtn[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft); color:var(--accent);}
+.stamp{
+  font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase; padding:6px 11px;
+  border:1.5px solid var(--warn); color:var(--warn); background:var(--warn-soft);
+  border-radius:4px; display:inline-block; margin-top:10px; transform:rotate(-1.2deg);
+}
+
+/* ---------- reveal ---------- */
+details.ref{
+  margin-top:18px; background:var(--surface); border:1px solid var(--line); border-radius:10px;
+}
+details.ref summary{
+  cursor:pointer; padding:13px 16px; font-weight:700; font-size:14px;
+  list-style:none; display:flex; align-items:center; gap:9px;
+}
+details.ref summary::-webkit-details-marker{display:none}
+details.ref summary::before{content:"+"; font-family:"JetBrains Mono",monospace; color:var(--accent); font-weight:700;}
+details.ref[open] summary::before{content:"\2212";}
+.body{padding:0 16px 16px;}
+.row{display:grid; grid-template-columns:186px 1fr; gap:14px; padding:10px 0; border-top:1px dotted var(--line);}
+.row:first-child{border-top:none;}
+.rl{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); padding-top:3px;
+}
+.rv{font-size:14px; line-height:1.55;}
+.locked{margin:0; color:var(--ink3); font-size:13.5px; line-height:1.55; padding:0 16px 16px;}
+@media (max-width:620px){ .row{grid-template-columns:1fr; gap:4px;} }
+
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:13px;}
+th,td{text-align:left; padding:9px 11px; border-bottom:1px solid var(--line); vertical-align:top;}
+th{
+  font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink3); font-weight:700; border-bottom:1px solid var(--line2);
+}
+td.tn{font-family:"JetBrains Mono",monospace; font-weight:700; white-space:nowrap;}
+.tablescroll{overflow-x:auto; padding:0 16px 16px;}
+footer.foot{margin-top:32px; color:var(--ink3); font-size:12.5px; line-height:1.6;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <div class="eyebrow">Temasek Polytechnic &middot; Aircraft Electronics and Digital Systems &middot; Topic 10</div>
+    <h1>BITE Console</h1>
+    <p>Work the snag the way you would on the line. Choose a test, read what it reports, then
+       decide whether that result releases the aircraft. A pass is a result, not a release.</p>
+  </div>
+  <button class="themebtn" id="themeToggle" type="button">Switch theme</button>
+</header>
+
+<div class="cols">
+
+  <section>
+    <div class="step"><span class="n">1</span><h2>Technical log</h2></div>
+    <div class="log" id="log"></div>
+  </section>
+
+  <div>
+    <section>
+      <div class="step"><span class="n">2</span><h2>Run a test</h2>
+        <span class="note">You may run more than one.</span>
+      </div>
+      <div class="panel">
+        <div class="reportbox">
+          <div class="rh" id="snagRef">&nbsp;</div>
+          <p id="snagReport">&nbsp;</p>
+        </div>
+        <div class="tests" id="tests"></div>
+        <div class="actions">
+          <button class="run" id="runBtn" type="button">Run test</button>
+          <button class="ghost" id="clearBtn" type="button">Clear readout</button>
+        </div>
+        <div class="readout" id="readout"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="step"><span class="n">3</span><h2>Record your decision</h2></div>
+      <div class="panel">
+        <p class="hint" id="dispoHint">On the evidence you have, what do you do with this
+          aircraft? Decide before you look at anything else.</p>
+        <div class="dispo">
+          <button class="dbtn" id="dRelease" type="button" data-dispo="release">Release to service</button>
+          <button class="dbtn" id="dInvestigate" type="button" data-dispo="investigate">Investigate further</button>
+        </div>
+        <div id="stampWrap"></div>
+
+        <details class="ref" id="reveal">
+          <summary>What was actually wrong</summary>
+          <div class="body" id="revealBody"></div>
+        </details>
+      </div>
+    </section>
+  </div>
+</div>
+
+<details class="ref">
+  <summary>The four BITE tests</summary>
+  <div class="tablescroll">
+    <table>
+      <thead><tr><th>Test</th><th>When it runs</th><th>What it covers</th></tr></thead>
+      <tbody id="refBody"></tbody>
+    </table>
+  </div>
+</details>
+
+<footer class="foot">
+  Built for the &ldquo;Brain before AI&rdquo; activity in Topic&nbsp;10, Electronic Instruments and
+  Typical Digital Aircraft Systems. The console reports what a test observed. Whether that
+  releases the aircraft is your judgement, and it is the point of the exercise.
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ data */
+var TESTS = [
+  {id:"POWERUP", name:"Power Up Test",
+   when:"On the ground, after a power interruption longer than 200 ms",
+   covers:"A safety test to confirm compliance with the design objectives. Memory, configuration and input/output tests."},
+  {id:"CYCLIC", name:"Cyclic Test",
+   when:"Continuously, in the background",
+   covers:"Runs without disturbing system operation. Watchdog test, RAM test, and validity of messages."},
+  {id:"SYSTEM", name:"System Test",
+   when:"As a maintenance task, and after an LRU is replaced",
+   covers:"Initiated for fault troubleshooting. More comprehensive than the Power Up and Cyclic tests."},
+  {id:"SPECIFIC", name:"Specific Test",
+   when:"On certain systems only",
+   covers:"Generates signals to command devices such as actuators or valves."}
+];
+
+var SNAGS = [
+  {
+    id:"ELAC", ata:"ATA 27 · SNAG 4412",
+    title:"ELAC 1 FAULT, one occurrence in the cruise",
+    report:"ECAM caution F/CTL ELAC 1 FAULT displayed once at FL350. Crew actioned the ECAM, the "
+      + "caution cleared and did not reappear for the remaining 3 h 20 min of the sector.",
+    results:{
+      POWERUP:"Power Up Test ran when ground power was applied. Memory, configuration and "
+        + "input/output tests all completed. No fault recorded.",
+      CYCLIC:"The cyclic test is running now and reports no current fault. The fault memory "
+        + "holds one entry against ELAC 1, time-stamped during the cruise.",
+      SYSTEM:"System Test initiated from the maintenance terminal. All monitored parameters of "
+        + "ELAC 1 are within limits. Test result: PASS.",
+      SPECIFIC:"No Specific Test is provided for this LRU. Specific Tests generate signals to "
+        + "command devices such as actuators and valves, and none is commanded here."
+    },
+    truth:"ELAC 1 has a genuine internal fault, but it only appears once the unit has reached "
+      + "cruise temperature. Every ground test runs the unit cold, so every ground test passes.",
+    found:"The cyclic test, in flight, at the moment it happened. That fault memory entry is the "
+      + "only hard evidence on the aircraft — no ground test can reproduce the condition.",
+    proved:"The System Test proved that ELAC 1 behaves correctly when cold. It did not, and could "
+      + "not, prove that the unit behaves correctly at cruise temperature."
+  },
+  {
+    id:"PFD", ata:"ATA 31 · SNAG 4417",
+    title:"Captain’s PFD blanked momentarily on rotation",
+    report:"Captain’s Primary Flight Display went blank for approximately two seconds at "
+      + "rotation, then restored to normal for the rest of the flight. Standby instruments "
+      + "unaffected. No ECAM message generated.",
+    results:{
+      POWERUP:"Power Up Test completed on all three symbol generators and all display units. "
+        + "No fault recorded.",
+      CYCLIC:"No current fault. No entry in the fault memory against SG(L), SG(R) or SG(C).",
+      SYSTEM:"System Test initiated. SG(L), SG(R) and SG(C) all respond correctly and every "
+        + "display unit accepts the test patterns. Test result: PASS.",
+      SPECIFIC:"No Specific Test is provided for this system."
+    },
+    truth:"A chafed wire in the harness between SG(L) and the Captain’s display unit opens "
+      + "momentarily as the airframe flexes at rotation.",
+    found:"None of them. BITE monitors the LRUs and the data they exchange — it does not "
+      + "monitor the wiring between them. This defect needs a physical inspection of the harness "
+      + "and a continuity check with the loom flexed.",
+    proved:"Every test proved that the line replaceable units are serviceable. The defect is not "
+      + "in an LRU, so no BITE result could ever have addressed it."
+  },
+  {
+    id:"TCAS", ata:"ATA 34 · SNAG 4421",
+    title:"No traffic displayed on either ND for a whole sector",
+    report:"Crew report no TCAS traffic symbols on either Navigation Display throughout a "
+      + "two-hour sector in busy airspace. No TA or RA was generated at any point.",
+    results:{
+      POWERUP:"Power Up Test flagged a TCAS computer fault at power application.",
+      CYCLIC:"The cyclic test reports a continuous fault against the TCAS computer.",
+      SYSTEM:"Self test initiated from the TCAS control panel. The test does not complete. The "
+        + "Navigation Display shows no cyan TCAS TEST message, no red TRAFFIC message and none "
+        + "of the four traffic alert symbols.",
+      SPECIFIC:"No Specific Test is provided for this system."
+    },
+    truth:"A hard internal failure of the TCAS computer.",
+    found:"All of them. The fault is present continuously and it sits inside the monitored path, "
+      + "so every test that looks at the computer finds it. This is the case BITE was designed "
+      + "for, and it is the straightforward one.",
+    proved:"A successful test would have displayed a cyan TCAS TEST message, a red TRAFFIC "
+      + "message and all four traffic alert symbols on the ND. None appeared, so the result is "
+      + "unambiguous."
+  },
+  {
+    id:"IRS", ata:"ATA 34 · SNAG 4425",
+    title:"IRS ALIGN light still on after 12 minutes at the gate",
+    report:"At the gate, the IRS ALIGN light remained illuminated well beyond the normal "
+      + "alignment period. Crew requested engineering attendance before departure.",
+    results:{
+      POWERUP:"Power Up Test completed, including the check on availability of DC backup power. "
+        + "No fault recorded.",
+      CYCLIC:"No fault detected.",
+      SYSTEM:"System Test initiated. No fault found in the Inertial Reference System. "
+        + "Test result: PASS.",
+      SPECIFIC:"No Specific Test is provided for this system."
+    },
+    truth:"There is no equipment fault. The IRS cannot complete its alignment until present "
+      + "position — latitude and longitude — has been entered.",
+    found:"Nothing to find. The defect is in the procedure, not in the equipment.",
+    proved:"BITE reported the system correctly. Reading the pass as “no fault found, so the "
+      + "crew were mistaken” would have missed the real cause; changing the IRU would have "
+      + "achieved a delay and an unnecessary component change."
+  },
+  {
+    id:"SPLR", ata:"ATA 27 · SNAG 4430",
+    title:"Number 3 spoiler fails to extend during a functional check",
+    report:"During a functional check following maintenance, the number 3 spoiler did not extend "
+      + "when commanded. No ECAM message was displayed at any point during the check.",
+    results:{
+      POWERUP:"Power Up Test completed on the flight control computers. No fault recorded.",
+      CYCLIC:"No current fault against SEC 1 or its interfaces.",
+      SYSTEM:"System Test of the Spoiler and Elevator Computer completes. The computer’s "
+        + "outputs are correct at the interface. Test result: PASS.",
+      SPECIFIC:"Specific Test commands the number 3 spoiler actuator. The commanded signal is "
+        + "present at the actuator. The surface does not move."
+    },
+    truth:"The computer is serviceable and its output is correct, which is exactly why the System "
+      + "Test passes. The fault is in the actuator that the computer commands.",
+    found:"The Specific Test. It is the only one that generates signals to command devices such "
+      + "as actuators and valves, so it is the only one that exercises that part of the system.",
+    proved:"The System Test proved the computer was serviceable. It said nothing about anything "
+      + "downstream of the computer’s output."
+  },
+  {
+    id:"PWR", ata:"ATA 24 · SNAG 4433",
+    title:"All displays rebooted during a ramp power changeover",
+    report:"While changing from ground power to APU, the electrical supply was interrupted for "
+      + "approximately 30 seconds. All display units blanked, restarted and ran through a self "
+      + "test. The crew entered the event in the technical log.",
+    results:{
+      POWERUP:"What the crew observed was the Power Up Test itself. It runs on the ground after "
+        + "power interruptions longer than 200 ms and carries out memory, configuration and "
+        + "input/output tests.",
+      CYCLIC:"No fault detected before, during or after the interruption.",
+      SYSTEM:"System Test initiated. No fault found. Test result: PASS.",
+      SPECIFIC:"No Specific Test is provided for this system."
+    },
+    truth:"Not a defect. A 30-second interruption is far longer than the 200 ms threshold, so the "
+      + "Power Up Test running and the displays restarting is the designed response.",
+    found:"Nothing to find. The system behaved exactly as designed.",
+    proved:"Here the correct action is to record the event and close the entry. Treating designed "
+      + "behaviour as a fault generates unnecessary work and unnecessary component changes."
+  }
+];
+
+var state = {snag:"ELAC", test:null, ran:{}, dispo:{}};
+
+/* ------------------------------------------------------------------ view */
+var $ = function(id){ return document.getElementById(id); };
+function snag(){ return SNAGS.filter(function(s){ return s.id === state.snag; })[0]; }
+function ranList(){ return state.ran[state.snag] || []; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function renderLog(){
+  $("log").innerHTML = SNAGS.map(function(s){
+    var n = (state.ran[s.id] || []).length;
+    var d = state.dispo[s.id];
+    var tag = n ? (n + (n === 1 ? ' test run' : ' tests run') +
+                   (d ? ' · ' + (d === 'release' ? 'released' : 'investigating') : '')) : '';
+    return '<button class="snag" type="button" data-snag="' + s.id + '" aria-pressed="' +
+      (s.id === state.snag) + '"><span class="ata">' + s.ata + '</span>' +
+      '<span class="st">' + s.title + '</span>' +
+      (tag ? '<span class="done">' + tag + '</span>' : '') + '</button>';
+  }).join("");
+}
+
+function renderTests(){
+  var done = ranList();
+  $("tests").innerHTML = TESTS.map(function(t){
+    return '<button class="test" type="button" data-test="' + t.id + '" aria-pressed="' +
+      (state.test === t.id) + '"><b>' + t.name + (done.indexOf(t.id) >= 0 ? '  ✓' : '') +
+      '</b><span>' + t.when + '</span></button>';
+  }).join("");
+  $("runBtn").disabled = !state.test;
+}
+
+function renderReport(){
+  var s = snag();
+  $("snagRef").textContent = s.ata;
+  $("snagReport").textContent = s.report;
+}
+
+function renderReadout(){
+  var s = snag(), done = ranList();
+  var body;
+  if(!done.length){
+    body = '<div class="entry"><span class="ei">READY</span><span class="et">' +
+      'Select a test above and run it. The console reports what that test observed — ' +
+      'it does not tell you whether the aircraft is serviceable.</span></div>';
+  } else {
+    body = done.map(function(id){
+      var t = TESTS.filter(function(x){ return x.id === id; })[0];
+      return '<div class="entry"><span class="ei">' + t.name.split(' ')[0].toUpperCase() +
+        '</span><span class="et">' + esc(s.results[id]) + '</span></div>';
+    }).join("");
+  }
+  $("readout").innerHTML =
+    '<div class="rohead"><span class="rt">Maintenance terminal</span>' +
+    '<span class="rs">' + s.ata + '</span></div>' + body;
+}
+
+function renderDispo(){
+  var d = state.dispo[state.snag];
+  $("dRelease").setAttribute("aria-pressed", d === 'release');
+  $("dInvestigate").setAttribute("aria-pressed", d === 'investigate');
+  $("stampWrap").innerHTML = d
+    ? '<span class="stamp">' + (d === 'release' ? 'Released to service' : 'Held for investigation') +
+      ' · ' + ranList().length + ' test' + (ranList().length === 1 ? '' : 's') + ' run</span>'
+    : '';
+}
+
+function renderReveal(){
+  var s = snag(), box = $("reveal"), body = $("revealBody");
+  var open = ranList().length > 0 && !!state.dispo[state.snag];
+  box.querySelector("summary").textContent = 'What was actually wrong — ' + s.title;
+  if(!open){
+    box.open = false;
+    body.className = "locked";
+    body.innerHTML = 'Run at least one test and record your decision first. Committing to a '
+      + 'decision before you know the answer is the whole exercise — on the line, that is '
+      + 'the order it happens in.';
+    return;
+  }
+  body.className = "body";
+  body.innerHTML =
+    '<div class="row"><span class="rl">The actual defect</span><span class="rv">' + esc(s.truth) + '</span></div>' +
+    '<div class="row"><span class="rl">Which test could find it</span><span class="rv">' + esc(s.found) + '</span></div>' +
+    '<div class="row"><span class="rl">What the result proved</span><span class="rv">' + esc(s.proved) + '</span></div>';
+}
+
+function renderRef(){
+  $("refBody").innerHTML = TESTS.map(function(t){
+    return '<tr><td class="tn">' + t.name + '</td><td>' + t.when + '</td><td>' + t.covers + '</td></tr>';
+  }).join("");
+}
+
+function save(){
+  try{ localStorage.setItem("bite-console",
+    JSON.stringify({snag:state.snag, ran:state.ran, dispo:state.dispo})); }catch(e){}
+}
+function load(){
+  try{
+    var raw = localStorage.getItem("bite-console");
+    if(!raw) return;
+    var d = JSON.parse(raw);
+    if(d && d.snag && SNAGS.some(function(s){ return s.id === d.snag; })) state.snag = d.snag;
+    if(d && d.ran && typeof d.ran === 'object') state.ran = d.ran;
+    if(d && d.dispo && typeof d.dispo === 'object') state.dispo = d.dispo;
+  }catch(e){}
+}
+
+function redraw(){
+  renderLog(); renderTests(); renderReport(); renderReadout();
+  renderDispo(); renderReveal(); save();
+}
+
+/* ------------------------------------------------------------------ events */
+document.addEventListener("click", function(e){
+  var t = e.target.closest("button");
+  if(!t) return;
+
+  if(t.dataset.snag){ state.snag = t.dataset.snag; state.test = null; redraw(); return; }
+  if(t.dataset.test){ state.test = t.dataset.test; renderTests(); return; }
+  if(t.dataset.dispo){ state.dispo[state.snag] = t.dataset.dispo; redraw(); return; }
+
+  if(t.id === "runBtn"){
+    if(!state.test) return;
+    var list = state.ran[state.snag] || (state.ran[state.snag] = []);
+    if(list.indexOf(state.test) < 0) list.push(state.test);
+    redraw(); return;
+  }
+  if(t.id === "clearBtn"){
+    state.ran[state.snag] = [];
+    delete state.dispo[state.snag];
+    state.test = null;
+    redraw(); return;
+  }
+  if(t.id === "themeToggle"){
+    var root = document.documentElement;
+    var dark = root.getAttribute("data-theme") === "dark" ||
+      (!root.getAttribute("data-theme") &&
+       window.matchMedia("(prefers-color-scheme: dark)").matches);
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+    return;
+  }
+});
+
+load();
+renderRef();
+redraw();
+</script>
+
+</body></html>
