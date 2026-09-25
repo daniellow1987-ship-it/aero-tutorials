@@ -1,0 +1,506 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Display Technology Selector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F5F7F7; --surface:#FFFFFF; --sunk:#EDF1F2;
+  --ink:#16212B; --muted:#5C6B77; --faint:#8598A4;
+  --rail:#D7E0E3; --rail-soft:#E7EDEF;
+  --accent:#0E7C96; --accent-soft:#DCEEF3;
+  --good:#1E8A5F; --good-soft:#E1F3EA;
+  --bad:#D93B2B; --bad-soft:#FBE4E1;
+  --warn:#9A6100; --warn-soft:#F7EBD6;
+  --shadow:0 1px 2px rgba(22,33,43,.06), 0 8px 24px -16px rgba(22,33,43,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+    --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+    --rail:#27343E; --rail-soft:#1F2B34;
+    --accent:#45B4D0; --accent-soft:#12303A;
+    --good:#4CC38A; --good-soft:#123423;
+    --bad:#FF7161; --bad-soft:#3A1C18;
+    --warn:#E0A33C; --warn-soft:#2E2612;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+  --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+  --rail:#27343E; --rail-soft:#1F2B34;
+  --accent:#45B4D0; --accent-soft:#12303A;
+  --good:#4CC38A; --good-soft:#123423;
+  --bad:#FF7161; --bad-soft:#3A1C18;
+  --warn:#E0A33C; --warn-soft:#2E2612;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink); margin:0;
+  font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size:15px; line-height:1.5;
+  padding-inline:16px; padding-block:22px 44px;
+}
+.wrap{max-width:1180px; margin:0 auto}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif; margin:0; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums}
+.masthead{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:6px}
+h1{font-size:clamp(23px,4.2vw,33px); font-weight:700; letter-spacing:-.015em}
+.sub{color:var(--muted); font-size:14.5px; max-width:70ch; margin:0 0 20px}
+.eyebrow{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11.5px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent)}
+
+/* stages */
+.stages{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; margin-bottom:16px}
+.stage{background:var(--surface); border:1px solid var(--rail); border-radius:9px; padding:14px 15px}
+.stage.s1{border-top:3px solid var(--accent)}
+.stage.s2{border-top:3px solid var(--bad)}
+.stage.s3{border-top:3px solid var(--faint)}
+.stage-hd{display:flex; align-items:baseline; gap:8px; margin-bottom:3px}
+.stage-hd .n{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; color:var(--faint)}
+.stage-hd h3{font-size:15px; font-weight:700; letter-spacing:-.005em}
+.stage .when{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:9px}
+.stage ol,.stage ul{margin:0; padding-left:17px; font-size:13.5px; line-height:1.5}
+.stage li{margin-bottom:5px}
+.stage li:last-child{margin-bottom:0}
+.stage .rule{margin-top:10px; padding-top:9px; border-top:1px solid var(--rail-soft); font-size:12.5px; color:var(--muted)}
+.stage .rule b{color:var(--ink)}
+.stage pre{background:var(--sunk); border:1px solid var(--rail-soft); border-radius:6px; padding:9px 10px;
+  font-family:"IBM Plex Mono",monospace; font-size:12px; line-height:1.5; white-space:pre-wrap; margin:6px 0}
+
+/* panels */
+.panel{background:var(--surface); border:1px solid var(--rail); border-radius:9px; padding:16px}
+.panel + .panel{margin-top:14px}
+.panel-hd{display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  margin:0 0 13px; padding-bottom:9px; border-bottom:1px solid var(--rail-soft)}
+.panel-hd h2{font-size:14px; font-weight:600; letter-spacing:.055em; text-transform:uppercase}
+.panel-hd .note{font-size:12px; color:var(--faint)}
+
+.grid{display:grid; grid-template-columns:minmax(0,320px) minmax(0,1fr); gap:14px; align-items:start}
+@media (max-width:900px){ .grid{grid-template-columns:minmax(0,1fr)} }
+
+/* case list */
+.caselist{display:flex; flex-direction:column; gap:6px}
+.case-btn{text-align:left; cursor:pointer; padding:10px 11px; border:1px solid var(--rail); border-radius:7px;
+  background:var(--sunk); color:var(--ink); font-family:inherit}
+.case-btn .k{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--faint)}
+.case-btn .t{font-size:13px; font-weight:600; margin-top:2px}
+.case-btn[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent)}
+.case-btn.done{opacity:.68}
+.case-btn.done .t::after{content:" ✓"; color:var(--good); font-weight:700}
+.case-btn.wrong .t::after{content:" ✕"; color:var(--bad); font-weight:700}
+
+.score{margin-top:12px; padding:10px 11px; background:var(--sunk); border:1px solid var(--rail-soft); border-radius:7px;
+  font-family:"IBM Plex Mono",monospace; font-size:13px; text-align:center}
+.score b{font-size:17px; color:var(--accent)}
+
+/* case detail */
+.brief{background:var(--sunk); border:1px solid var(--rail-soft); border-radius:8px; padding:13px 14px; margin-bottom:14px; font-size:14px}
+.brief .tag{display:inline-block; font-family:"IBM Plex Sans Condensed",sans-serif; font-size:10.5px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:6px}
+
+.step{margin-bottom:15px}
+.step-lab{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:7px}
+.opts{display:flex; gap:8px; flex-wrap:wrap}
+.opts button{flex:1 1 140px; padding:10px 12px; cursor:pointer; text-align:left;
+  font-family:"IBM Plex Sans",sans-serif; font-size:13.5px;
+  background:var(--surface); color:var(--ink); border:1px solid var(--rail); border-radius:7px;
+  transition:background .12s,border-color .12s}
+.opts button:hover{border-color:var(--accent)}
+.opts button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+.opts button:disabled{cursor:default}
+
+.rowbtns{display:flex; gap:8px; margin-top:4px; flex-wrap:wrap}
+.rowbtns button{padding:9px 16px; cursor:pointer; font-size:13.5px;
+  font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600; letter-spacing:.03em;
+  background:var(--surface); color:var(--ink); border:1px solid var(--rail); border-radius:7px}
+.rowbtns button:hover{border-color:var(--accent); color:var(--accent)}
+.rowbtns button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.rowbtns button.primary:hover{color:#fff; filter:brightness(1.08)}
+.rowbtns button:disabled{opacity:.4; cursor:not-allowed}
+
+.verdict{margin-top:16px; border-radius:8px; padding:13px 14px; border:1px solid var(--rail)}
+.verdict.good{background:var(--good-soft); border-color:var(--good)}
+.verdict.bad{background:var(--bad-soft); border-color:var(--bad)}
+.verdict .vh{display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; margin-bottom:6px}
+.verdict.good .vh{color:var(--good)}
+.verdict.bad .vh{color:var(--bad)}
+.verdict p{margin:0 0 7px; font-size:13.5px}
+.verdict p:last-child{margin-bottom:0}
+.verdict .consequence{font-size:13px; color:var(--muted); border-top:1px dashed var(--rail); margin-top:9px; padding-top:9px}
+
+/* matrix */
+.matrix-wrap{overflow-x:auto}
+table.matrix{border-collapse:collapse; width:100%; font-size:12.8px}
+table.matrix th, table.matrix td{border:1px solid var(--rail-soft); padding:7px 9px; text-align:left; vertical-align:top}
+table.matrix th{background:var(--sunk); font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600;
+  text-transform:uppercase; letter-spacing:.04em; font-size:11px; color:var(--muted)}
+table.matrix td.tech{font-weight:600; white-space:nowrap}
+.rate{display:inline-block; padding:1px 7px; border-radius:20px; font-size:11px; font-weight:600;
+  font-family:"IBM Plex Sans Condensed",sans-serif}
+.rate.H{background:var(--good-soft); color:var(--good)}
+.rate.M{background:var(--warn-soft); color:var(--warn)}
+.rate.L{background:var(--bad-soft); color:var(--bad)}
+
+.foot{margin-top:18px; font-size:12px; color:var(--faint); text-align:center}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Display Technology Selector</h1>
+    <span class="eyebrow">Topic&nbsp;9 · Electronic Displays</span>
+  </div>
+  <p class="sub">Eight real avionics display jobs. For each one: pick the <b>technology family</b> (CRT / LCD / LED), then the <b>sub-type</b> the deck actually distinguishes within it (scanning method, illumination mode, matrix type, or display format). Every verdict is drawn straight from the topic's own stated facts.</p>
+
+  <div class="stages">
+    <section class="stage s1">
+      <div class="stage-hd"><span class="n">01</span><h3>Predict, then check</h3></div>
+      <div class="when">8 minutes · no AI</div>
+      <ol>
+        <li>Screens down. On paper, for cases <b>A, C, E and G</b> below: name the technology family <i>and</i> the sub-type, and write one sentence why.</li>
+        <li>Then open the selector and check all four. Mark each right or wrong.</li>
+      </ol>
+      <div class="rule">The wrong ones are the useful ones — write one line on <b>what fact you were missing</b>, not just "I was wrong".</div>
+    </section>
+
+    <section class="stage s2">
+      <div class="stage-hd"><span class="n">02</span><h3>Make AI commit</h3></div>
+      <div class="when">10 minutes · AI never gives the answer first</div>
+      <p style="margin:0 0 4px;font-size:13.5px">Paste this, exactly as written, about <b>Case B</b> (the HUD symbology case):</p>
+      <pre>I am an aerospace electronics student.
+Here is a display requirement: [paste
+Case B's brief]. Make FIVE specific,
+testable claims: the technology family,
+the exact sub-type, and three supporting
+facts about why that sub-type fits. Number
+them 1 to 5. Do not hedge.</pre>
+      <div class="rule">Open Case B in the selector and adjudicate every claim against it. Mark each <b>true</b> or <b>false</b>, and for each false one, say what AI got wrong.</div>
+    </section>
+
+    <section class="stage s3">
+      <div class="stage-hd"><span class="n">03</span><h3>Settle it</h3></div>
+      <div class="when">9 minutes · together, then alone</div>
+      <ul>
+        <li>Scores on the board. How many of five did AI get right on Case B?</li>
+        <li>One question for the room: <b>why doesn't "LED display" just mean an LED backlight behind an LCD panel?</b></li>
+        <li><b>Transfer (no selector, justify from the spec matrix below):</b> a light trainer aircraft needs a simple numeric heading readout, tight budget, no power budget for a backlight, must be legible in full daylight in an unshaded cockpit, doesn't need to work at night. Family, sub-type, and why?</li>
+      </ul>
+      <div class="rule">Finish these two, in writing:<br>• Before today I thought "LCD" and "LED display" were basically the same thing because …<br>• AI got __ of 5 right on Case B. The one it got wrong was wrong because …</div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <div>
+      <section class="panel">
+        <div class="panel-hd"><h2>Cases</h2><span class="note">pick one</span></div>
+        <div class="caselist" id="caselist"></div>
+        <div class="score">Checked: <b id="score-n">0</b> / <span id="score-t">8</span> &nbsp;·&nbsp; Correct: <b id="score-c">0</b></div>
+      </section>
+    </div>
+
+    <div>
+      <section class="panel">
+        <div class="panel-hd"><h2 id="case-title">Select a case</h2><span class="note" id="case-eyebrow"></span></div>
+        <div class="brief" id="case-brief"></div>
+
+        <div class="step">
+          <div class="step-lab">Step 1 · Technology family</div>
+          <div class="opts" id="opts-family"></div>
+        </div>
+
+        <div class="step" id="step2-wrap" style="display:none">
+          <div class="step-lab" id="step2-lab">Step 2 · Sub-type</div>
+          <div class="opts" id="opts-sub"></div>
+        </div>
+
+        <div class="rowbtns">
+          <button type="button" class="primary" id="btn-check" disabled>Check</button>
+          <button type="button" id="btn-reset">Clear this case</button>
+        </div>
+
+        <div id="verdict"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-hd"><h2>Spec matrix — for the debrief</h2><span class="note">H = strong fit · M = workable · L = poor fit · H* = needs bright ambient light to reach it</span></div>
+    <div class="matrix-wrap">
+      <table class="matrix" id="matrix"></table>
+    </div>
+  </section>
+
+  <p class="foot">Facts sourced from Topic 9 · Electronic Displays (slides 5–65). Every rating traces to a stated property — brightness, viewing angle, response speed, power/heat, or a named aircraft application.</p>
+</div>
+
+<script>
+const FAMILIES = ["CRT","LCD","LED"];
+
+const CASES = [
+ { id:"A", tag:"Case A", title:"Legacy widebody EICAS retrofit",
+   brief:"An older widebody still in service needs its engine-display CRTs replaced like-for-like. The new unit must fill large coloured background areas — weather returns, and the blue-sky / brown-ground split behind the attitude symbol — and stay bright and readable from any of three crew seats.",
+   family:"CRT", axisLabel:"Scanning method", subs:[
+     {id:"raster", label:"Raster scanning", correct:true,
+      why:"Raster scanning sweeps the beam line by line to cover large areas with colour — exactly the job stated on slide 21: weather-scope colour areas, and the ND/EHSI or ADI's blue-and-brown backgrounds.",
+      wrong:"Stroke scanning only draws outlines and symbols with the beam — it cannot fill an area. A stroke-scanned attempt at a coloured background would show nothing but the traced lines; the sky/ground split would not appear."},
+     {id:"stroke", label:"Stroke scanning", correct:false,
+      why:"Stroke draws symbols and alphanumerics point-to-point — sharp and bright, but it does not fill areas with colour.",
+      wrong:"A stroke-scanned display cannot paint the large coloured background this case needs — only raster's line-by-line sweep can cover an area."} ]},
+
+ { id:"B", tag:"Case B", title:"Head-up display (HUD) symbology",
+   brief:"A HUD projects flight-path and attitude symbology that the pilot views directly against a very bright sky. Only lines, numbers and symbols are needed — no filled colour backgrounds. The image must stay sharp and bright enough to read against that background.",
+   family:"CRT", axisLabel:"Scanning method", subs:[
+     {id:"raster", label:"Raster scanning", correct:false,
+      why:"Raster is built for filling areas with colour, and it flickers — the wrong trade-off when nothing needs filling and the display must stay crisp against bright glare.",
+      wrong:"Raster's flicker and area-fill design don't help here — the deck names stroke-scanned CRT specifically for this job."},
+     {id:"stroke", label:"Stroke scanning", correct:true,
+      why:"Slide 24 names this directly: stroke-scanned CRTs are commonly used in head-up and helmet-mounted displays precisely because the slower beam speed makes the image sharper and brighter — needed when it must be viewed against a very bright background.",
+      wrong:"—"} ]},
+
+ { id:"C", tag:"Case C", title:"New-build glass-cockpit PFD / ND",
+   brief:"A new-build aircraft needs a full-colour Primary Flight Display and Navigation Display: high resolution, wide viewing angle for both pilots, and full graphics capability (maps, synthetic terrain). It also has to be thin, light and low-power compared to the CRTs it replaces.",
+   family:"LCD", axisLabel:"Matrix type", subs:[
+     {id:"active", label:"Active-matrix (TFT / AMLCD)", correct:true,
+      why:"Slide 53 and 55: active-matrix gives each pixel its own thin-film transistor, producing high-resolution colour that's brighter, sharper and has a much wider viewing range than passive-matrix — exactly what makes full-graphics AMLCD cockpit displays possible.",
+      wrong:"—"},
+     {id:"passive", label:"Passive-matrix (TN/STN)", correct:false,
+      why:"Passive-matrix drives a small number of segments through an external circuit — fine for a few fixed elements, not for high-resolution colour graphics.",
+      wrong:"Slide 51: passive-matrix has poor contrast and sharpness, and is unwieldy for more than a few display elements — a full graphical PFD would look poor and struggle to update its many pixels."} ]},
+
+ { id:"D", tag:"Case D", title:"Portable EFB used at night",
+   brief:"A portable electronic flight bag (tablet-style device) is used on the flight deck, mostly indoors and often at night or in dim ambient lighting. It needs to be clearly readable without relying on cabin or panel lighting.",
+   family:"LCD", axisLabel:"Illumination mode", subs:[
+     {id:"transmissive", label:"Transmissive LCD", correct:true,
+      why:"Slides 46–47: a transmissive LCD carries its own light source (backlight), giving excellent viewing indoors and in dim light — exactly the stated advantage for portable computers.",
+      wrong:"—"},
+     {id:"reflective", label:"Reflective LCD", correct:false,
+      why:"Reflective LCD has no backlight — it reflects ambient light back to the viewer via a mirror.",
+      wrong:"Slide 48: reflective LCD requires bright external light and is hard to view in dark rooms or at night — the opposite of what this dim/night case needs."} ]},
+
+ { id:"E", tag:"Case E", title:"Exterior-facing placard indicator",
+   brief:"A simple exterior-facing indicator has no power budget to spare for a backlight, and only ever needs to be read in bright daylight. Cost is the dominant constraint.",
+   family:"LCD", axisLabel:"Illumination mode", subs:[
+     {id:"reflective", label:"Reflective LCD", correct:true,
+      why:"Slide 48: light passes through the LCD layer to a mirror and reflects back to the viewer — no backlight needed. It's stated as the least costly option, provided there's enough ambient light, which daylight supplies.",
+      wrong:"—"},
+     {id:"transmissive", label:"Transmissive LCD", correct:false,
+      why:"Transmissive LCD needs its own backlight to work at all.",
+      wrong:"A backlight draws power this case doesn't have — and slide 46 notes direct sunlight overwhelms a backlight anyway, making a transmissive panel hard to read outdoors in daylight."} ]},
+
+ { id:"F", tag:"Case F", title:"Cost-driven legacy annunciator",
+   brief:"A budget retrofit needs only a handful of fixed alphanumeric readouts (a handful of status codes), updating slowly. Simplicity and unit cost matter far more than speed or sharpness.",
+   family:"LCD", axisLabel:"Matrix type", subs:[
+     {id:"passive", label:"Passive-matrix (TN/STN)", correct:true,
+      why:"Slide 51: passive-matrix suits a small number of individually-contacted segments driven by a simple external circuit — a good match when there are only a few slow-changing elements and cost is the priority.",
+      wrong:"—"},
+     {id:"active", label:"Active-matrix (TFT)", correct:false,
+      why:"Active-matrix gives one transistor per pixel for fast, high-resolution colour graphics.",
+      wrong:"That capability is unnecessary cost and complexity here — this case has only a few fixed, slow-changing segments, which is exactly the job passive-matrix is suited to."} ]},
+
+ { id:"G", tag:"Case G", title:"Engine Torque / Temperature indicator",
+   brief:"A pointer-and-dial Torque Indicator is being replaced with an electronic equivalent: a compact, low-power, fast-responding NUMERIC readout only — no arbitrary text or symbols, just digits in a small fixed number of positions.",
+   family:"LED", axisLabel:"Display format", subs:[
+     {id:"segmented", label:"Segmented LED (7-segment)", correct:true,
+      why:"Slide 64 names this exact application: LED is used to replace the pointers and tapes on circular or vertical scale displays, including the aircraft Torque Indicator and Temperature Indicator. Slide 62: 7-segment devices are the standard for numeric display, and slide 65's fast response and long life fit a flight-deck gauge.",
+      wrong:"—"},
+     {id:"dotmatrix", label:"Dot-matrix LED", correct:false,
+      why:"Dot-matrix wires many individually-addressable LEDs in rows and columns specifically to minimise pin count when a display needs arbitrary characters or symbols across many positions.",
+      wrong:"That flexibility isn't needed for a small fixed digit count — 7-segment is the simpler, named solution for exactly this gauge-replacement job."} ]},
+
+ { id:"H", tag:"Case H", title:"Caution/warning message annunciator",
+   brief:"A caution annunciator must show varying alphanumeric text messages plus a few icon-like symbols — not a fixed small set of digits — and light up instantly when a new caution is raised.",
+   family:"LED", axisLabel:"Display format", subs:[
+     {id:"dotmatrix", label:"Dot-matrix LED", correct:true,
+      why:"Slide 63: dot-matrix is an array of individually-addressable LED dots selected in groups to form alphanumeric characters AND symbols, typically in a 5×7 pattern — built for arbitrary messages, not just fixed digit shapes, and wired in rows/columns to keep the pin count manageable across many positions.",
+      wrong:"—"},
+     {id:"segmented", label:"Segmented LED (7/16-segment)", correct:false,
+      why:"16-segment devices can form basic alphanumerics, but only in the fixed shapes their segments allow.",
+      wrong:"Slide 63's icon-like symbols and free-form messages need dot-matrix's arbitrary dot pattern — segments can't draw a shape they weren't built to form."} ]},
+];
+
+const MATRIX = [
+ {tech:"CRT — colour / raster", brightness:"H", angle:"H", graphics:"H", speed:"H", power:"L", use:"Legacy widebody EICAS / ND / weather colour fill (slides 5, 21, 34)"},
+ {tech:"CRT — stroke", brightness:"H", angle:"M", graphics:"L", speed:"H", power:"L", use:"HUD & helmet-mounted symbology against bright backgrounds (slide 24)"},
+ {tech:"LCD — active-matrix (AMLCD)", brightness:"M", angle:"H", graphics:"H", speed:"M", power:"H", use:"New-build glass-cockpit PFD / ND / EICAS (slides 53, 55)"},
+ {tech:"LCD — passive-matrix", brightness:"L", angle:"L", graphics:"L", speed:"L", power:"H", use:"A few fixed, slow, low-cost readouts (slide 51)"},
+ {tech:"LCD — transmissive", brightness:"L", angle:"M", graphics:"M", speed:"M", power:"M", use:"Indoor / dim / night viewing, e.g. portable EFB (slides 46–47)"},
+ {tech:"LCD — reflective", brightness:"H*", angle:"M", graphics:"M", speed:"M", power:"H", use:"Bright-ambient, no-backlight, cost-driven readouts (slides 48–49)"},
+ {tech:"LED — segmented", brightness:"H", angle:"M", graphics:"L", speed:"H", power:"H", use:"Fixed numeric readouts — Torque / Temperature indicators (slides 62, 64)"},
+ {tech:"LED — dot-matrix", brightness:"H", angle:"M", graphics:"M", speed:"H", power:"H", use:"Arbitrary alphanumeric messages & symbols, caution annunciators (slide 63)"},
+];
+
+let current = null;
+let picks = {}; // caseId -> {family, sub, checked, correct}
+
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+
+function buildCaseList(){
+  const wrap = document.getElementById('caselist');
+  wrap.innerHTML='';
+  CASES.forEach(c=>{
+    const b = el('button','case-btn');
+    b.type='button';
+    b.setAttribute('role','listitem');
+    b.dataset.id=c.id;
+    b.innerHTML = `<div class="k">${c.tag}</div><div class="t">${c.title}</div>`;
+    b.addEventListener('click', ()=>selectCase(c.id));
+    wrap.appendChild(b);
+  });
+  refreshCaseList();
+}
+
+function refreshCaseList(){
+  document.querySelectorAll('.case-btn').forEach(b=>{
+    const p = picks[b.dataset.id];
+    b.setAttribute('aria-pressed', current===b.dataset.id ? 'true':'false');
+    b.classList.toggle('done', !!(p && p.checked && p.correct));
+    b.classList.toggle('wrong', !!(p && p.checked && !p.correct));
+  });
+  let n=0,c=0;
+  Object.values(picks).forEach(p=>{ if(p.checked){ n++; if(p.correct) c++; } });
+  document.getElementById('score-n').textContent=n;
+  document.getElementById('score-c').textContent=c;
+}
+
+function selectCase(id){
+  current = id;
+  const c = CASES.find(x=>x.id===id);
+  if(!picks[id]) picks[id]={family:null, sub:null, checked:false, correct:false};
+  document.getElementById('case-title').textContent = c.tag+' — '+c.title;
+  document.getElementById('case-eyebrow').textContent = 'technology family, then sub-type';
+  document.getElementById('case-brief').innerHTML = `<span class="tag">Requirement</span><br>${c.brief}`;
+
+  const fWrap = document.getElementById('opts-family');
+  fWrap.innerHTML='';
+  FAMILIES.forEach(f=>{
+    const b = el('button', null, f);
+    b.type='button';
+    b.setAttribute('aria-pressed', picks[id].family===f ? 'true':'false');
+    b.disabled = picks[id].checked;
+    b.addEventListener('click', ()=>{ picks[id].family=f; picks[id].sub=null; renderCase(); });
+    fWrap.appendChild(b);
+  });
+
+  renderStep2();
+  renderVerdict();
+  refreshCaseList();
+  updateCheckBtn();
+}
+
+function renderCase(){ renderStep2(); renderVerdict(); updateCheckBtn(); refreshFamilyBtns(); }
+
+function refreshFamilyBtns(){
+  const id=current, p=picks[id];
+  document.querySelectorAll('#opts-family button').forEach(b=>{
+    b.setAttribute('aria-pressed', b.textContent===p.family ? 'true':'false');
+  });
+}
+
+function renderStep2(){
+  const id=current, c=CASES.find(x=>x.id===id), p=picks[id];
+  const step2 = document.getElementById('step2-wrap');
+  const subWrap = document.getElementById('opts-sub');
+  subWrap.innerHTML='';
+  if(!p.family){ step2.style.display='none'; return; }
+  step2.style.display='';
+  document.getElementById('step2-lab').textContent = 'Step 2 · '+ (p.family===c.family ? c.axisLabel : 'Sub-type');
+  if(p.family !== c.family){
+    subWrap.innerHTML = `<div style="font-size:13px;color:var(--muted)">This case's requirement is answered by a different family — pick again in Step 1, or press Check to see why.</div>`;
+    p.sub=null;
+    return;
+  }
+  c.subs.forEach(s=>{
+    const b = el('button', null, s.label);
+    b.type='button';
+    b.setAttribute('aria-pressed', p.sub===s.id ? 'true':'false');
+    b.disabled = p.checked;
+    b.addEventListener('click', ()=>{ p.sub=s.id; refreshSubBtns(); updateCheckBtn(); });
+    subWrap.appendChild(b);
+  });
+}
+function refreshSubBtns(){
+  const p=picks[current];
+  document.querySelectorAll('#opts-sub button').forEach(b=>{
+    const s = CASES.find(x=>x.id===current).subs.find(s=>s.label===b.textContent);
+    b.setAttribute('aria-pressed', s && p.sub===s.id ? 'true':'false');
+  });
+}
+
+function updateCheckBtn(){
+  const p = picks[current];
+  const btn = document.getElementById('btn-check');
+  const ready = p && p.family && (p.family!==CASES.find(x=>x.id===current).family || p.sub);
+  btn.disabled = !ready || p.checked;
+}
+
+function renderVerdict(){
+  const v = document.getElementById('verdict');
+  const p = picks[current];
+  if(!p || !p.checked){ v.innerHTML=''; return; }
+  const c = CASES.find(x=>x.id===current);
+  const familyRight = p.family === c.family;
+  const sub = familyRight ? c.subs.find(s=>s.id===p.sub) : null;
+  const ok = familyRight && sub && sub.correct;
+  const box = el('div','verdict '+(ok?'good':'bad'));
+  if(ok){
+    box.innerHTML = `<div class="vh">✓ Correct — ${c.family}, ${sub.label}</div><p>${sub.why}</p>`;
+  } else {
+    let msg='';
+    if(!familyRight){
+      const rightSub = c.subs.find(s=>s.correct);
+      msg = `<p><b>Family:</b> the deck's answer is <b>${c.family}</b>, not ${p.family}.</p><p>${rightSub.why}</p>`;
+    } else {
+      msg = `<p><b>Sub-type:</b> the family was right, but the deck's answer is <b>${c.subs.find(s=>s.correct).label}</b>.</p><p class="consequence">${sub ? sub.wrong : ''}</p>`;
+    }
+    box.innerHTML = `<div class="vh">✕ Not quite</div>${msg}`;
+  }
+  v.innerHTML='';
+  v.appendChild(box);
+}
+
+document.getElementById('btn-check').addEventListener('click', ()=>{
+  const c = CASES.find(x=>x.id===current), p = picks[current];
+  const familyRight = p.family === c.family;
+  const sub = familyRight ? c.subs.find(s=>s.id===p.sub) : null;
+  p.checked = true;
+  p.correct = !!(familyRight && sub && sub.correct);
+  document.querySelectorAll('#opts-family button, #opts-sub button').forEach(b=>b.disabled=true);
+  document.getElementById('btn-check').disabled=true;
+  renderVerdict();
+  refreshCaseList();
+});
+
+document.getElementById('btn-reset').addEventListener('click', ()=>{
+  if(!current) return;
+  picks[current] = {family:null, sub:null, checked:false, correct:false};
+  selectCase(current);
+});
+
+function buildMatrix(){
+  const t = document.getElementById('matrix');
+  const head = '<tr><th>Technology</th><th>Sunlight brightness</th><th>Viewing angle</th><th>Colour graphics</th><th>Response speed</th><th>Power / heat</th><th>Typical use in this topic</th></tr>';
+  const rows = MATRIX.map(m=>{
+    const rate = (v)=> `<span class="rate ${v.replace('*','')}">${v}</span>`;
+    return `<tr><td class="tech">${m.tech}</td><td>${rate(m.brightness)}</td><td>${rate(m.angle)}</td><td>${rate(m.graphics)}</td><td>${rate(m.speed)}</td><td>${rate(m.power)}</td><td>${m.use}</td></tr>`;
+  }).join('');
+  t.innerHTML = head+rows;
+}
+
+buildCaseList();
+buildMatrix();
+selectCase('A');
+</script>
+</body>
+</html>
+
+</body></html>
