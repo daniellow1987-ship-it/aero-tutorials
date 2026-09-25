@@ -1,0 +1,1179 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Data Converter Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F5F7F7; --surface:#FFFFFF; --sunk:#EDF1F2;
+  --ink:#16212B; --muted:#5C6B77; --faint:#8598A4;
+  --rail:#D7E0E3; --rail-soft:#E7EDEF;
+  --accent:#0E7C96; --accent-soft:#DCEEF3;
+  --live:#D93B2B; --live-soft:#FBE4E1;
+  --warn:#9A6100;
+  --shadow:0 1px 2px rgba(22,33,43,.06), 0 8px 24px -16px rgba(22,33,43,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+    --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+    --rail:#27343E; --rail-soft:#1F2B34;
+    --accent:#45B4D0; --accent-soft:#12303A;
+    --live:#FF7161; --live-soft:#3A1C18;
+    --warn:#E0A33C;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+  --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+  --rail:#27343E; --rail-soft:#1F2B34;
+  --accent:#45B4D0; --accent-soft:#12303A;
+  --live:#FF7161; --live-soft:#3A1C18;
+  --warn:#E0A33C;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size:15px; line-height:1.5;
+  padding-inline:16px; padding-block:22px 40px;
+}
+.wrap{max-width:1180px; margin:0 auto}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif; margin:0; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums}
+
+/* ---- masthead ---- */
+.masthead{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:6px}
+h1{font-size:clamp(25px,4.4vw,36px); font-weight:700; letter-spacing:-.015em}
+.sub{color:var(--muted); font-size:14.5px; max-width:62ch; margin:0 0 22px}
+.eyebrow{
+  font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11.5px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent);
+}
+
+/* ---- panels ---- */
+.panel{background:var(--surface); border:1px solid var(--rail); border-radius:9px; padding:16px}
+.panel + .panel{margin-top:14px}
+.panel-hd{
+  display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  margin:0 0 13px; padding-bottom:9px; border-bottom:1px solid var(--rail-soft);
+}
+.panel-hd h2{font-size:14px; font-weight:600; letter-spacing:.055em; text-transform:uppercase}
+.panel-hd .note{font-size:12px; color:var(--faint)}
+
+.grid{display:grid; grid-template-columns:minmax(0,340px) minmax(0,1fr); gap:14px; align-items:start}
+@media (max-width:880px){ .grid{grid-template-columns:minmax(0,1fr)} }
+
+/* ---- controls ---- */
+.ctl{margin-bottom:17px}
+.ctl:last-child{margin-bottom:0}
+.ctl-lab{
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:7px;
+  font-family:"IBM Plex Sans Condensed",sans-serif;
+  font-size:11.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+}
+.ctl-val{font-family:"IBM Plex Mono",monospace; font-size:14px; color:var(--ink); letter-spacing:0; text-transform:none}
+
+.seg{display:flex; gap:5px; flex-wrap:wrap}
+.seg button{
+  flex:1 1 auto; min-width:46px; padding:7px 4px; cursor:pointer;
+  font-family:"IBM Plex Mono",monospace; font-size:13.5px;
+  background:var(--sunk); color:var(--muted);
+  border:1px solid var(--rail); border-radius:6px;
+  transition:background .12s, color .12s, border-color .12s;
+}
+.seg button:hover{border-color:var(--accent)}
+.seg button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500}
+.seg.wide button{flex:1 1 0}
+
+input[type=range]{width:100%; accent-color:var(--accent); height:22px}
+button:focus-visible, input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* ---- bit switches ---- */
+.bits{display:flex; flex-direction:row-reverse; justify-content:flex-end; gap:4px; flex-wrap:wrap}
+.bit{display:flex; flex-direction:column; align-items:center; gap:3px}
+.bit button{
+  width:33px; height:38px; cursor:pointer; padding:0;
+  font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:500;
+  background:var(--sunk); color:var(--faint);
+  border:1px solid var(--rail); border-radius:5px;
+  transition:background .1s, color .1s, border-color .1s;
+}
+.bit button[data-on="1"]{background:var(--live); border-color:var(--live); color:#fff}
+.bit small{font-family:"IBM Plex Mono",monospace; font-size:9.5px; color:var(--faint)}
+.bit.msb small{color:var(--accent); font-weight:500}
+
+.rowbtns{display:flex; gap:6px; margin-top:11px; flex-wrap:wrap}
+.rowbtns button{
+  padding:7px 13px; cursor:pointer; font-size:13px;
+  font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600; letter-spacing:.03em;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--rail); border-radius:6px;
+}
+.rowbtns button:hover{border-color:var(--accent); color:var(--accent)}
+.rowbtns button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.rowbtns button.primary:hover{color:#fff; filter:brightness(1.08)}
+
+/* ---- readout ---- */
+.readout{display:grid; grid-template-columns:repeat(auto-fit,minmax(122px,1fr)); gap:1px; background:var(--rail-soft); border:1px solid var(--rail-soft); border-radius:7px; overflow:hidden}
+.cell{background:var(--surface); padding:10px 12px}
+.cell .k{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:3px}
+.cell .v{font-family:"IBM Plex Mono",monospace; font-size:18px; font-weight:500; letter-spacing:-.01em}
+.cell .u{font-size:12px; color:var(--muted); font-weight:400}
+.cell.hero{background:var(--accent-soft)}
+.cell.hero .v{color:var(--accent); font-size:21px; font-weight:600}
+.cell.hero .k{color:var(--accent)}
+
+.sum{
+  margin-top:12px; padding:11px 13px; background:var(--sunk);
+  border-radius:7px; border:1px solid var(--rail-soft);
+  font-family:"IBM Plex Mono",monospace; font-size:14px; overflow-x:auto; white-space:nowrap;
+}
+.sum b{color:var(--accent); font-weight:600}
+.word{margin-top:10px; font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); overflow-x:auto; white-space:nowrap}
+.word b{color:var(--live); font-weight:600}
+
+/* ---- charts ---- */
+.charts{display:grid; grid-template-columns:minmax(0,1.9fr) minmax(0,1fr); gap:14px}
+@media (max-width:720px){ .charts{grid-template-columns:minmax(0,1fr)} }
+svg{display:block; width:100%; height:auto; max-width:100%}
+.cap{font-size:12px; color:var(--faint); margin-top:7px}
+
+/* ---- ladder compare ---- */
+.compare{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px}
+.card{border:1px solid var(--rail); border-radius:8px; padding:13px; background:var(--sunk)}
+.card.on{background:var(--accent-soft); border-color:var(--accent)}
+.card h3{font-size:13.5px; font-weight:700; letter-spacing:.03em; margin-bottom:9px}
+.card dl{display:grid; grid-template-columns:auto 1fr; gap:5px 12px; margin:0; font-size:13px}
+.card dt{color:var(--muted)}
+.card dd{margin:0; font-family:"IBM Plex Mono",monospace; text-align:right; font-variant-numeric:tabular-nums}
+.flag{margin-top:10px; font-size:12.5px; line-height:1.45; color:var(--warn)}
+.flag.ok{color:var(--accent)}
+
+.foot{margin-top:20px; font-size:12.5px; color:var(--faint); max-width:70ch}
+.foot code{font-family:"IBM Plex Mono",monospace; background:var(--sunk); padding:1px 5px; border-radius:4px; font-size:12px}
+
+/* ---- activity strip ---- */
+.stages{display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr)); gap:12px; margin-bottom:14px}
+.stage{background:var(--surface); border:1px solid var(--rail); border-radius:9px; padding:14px 15px; position:relative}
+.stage.s1{border-top:3px solid var(--accent)}
+.stage.s2{border-top:3px solid var(--live)}
+.stage.s3{border-top:3px solid var(--faint)}
+.stage-hd{display:flex; align-items:baseline; gap:8px; margin-bottom:3px}
+.stage-hd .n{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; color:var(--faint)}
+.stage-hd h3{font-size:15px; font-weight:700; letter-spacing:-.005em}
+.stage .when{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:9px}
+.stage ol,.stage ul{margin:0; padding-left:17px; font-size:13.5px; line-height:1.5}
+.stage li{margin-bottom:5px}
+.stage li:last-child{margin-bottom:0}
+.stage .rule{margin-top:10px; padding-top:9px; border-top:1px solid var(--rail-soft); font-size:12.5px; color:var(--muted)}
+.stage .rule b{color:var(--ink)}
+.stage pre{
+  margin:8px 0 0; padding:9px 10px; background:var(--sunk); border:1px solid var(--rail-soft);
+  border-radius:6px; font-family:"IBM Plex Mono",monospace; font-size:11.5px; line-height:1.45;
+  white-space:pre-wrap; color:var(--ink);
+}
+
+/* ---- part 2: A/D ---- */
+.adcgrid{display:grid; grid-template-columns:minmax(0,340px) minmax(0,1fr); gap:14px; align-items:start}
+@media (max-width:880px){ .adcgrid{grid-template-columns:minmax(0,1fr)} }
+.lamps{display:flex; flex-direction:row-reverse; justify-content:flex-end; gap:4px; flex-wrap:wrap; margin-top:4px}
+.lamp{display:flex; flex-direction:column; align-items:center; gap:3px}
+.lamp i{width:30px; height:34px; display:flex; align-items:center; justify-content:center;
+  border-radius:5px; font-style:normal; font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:600;
+  background:var(--sunk); color:var(--faint); border:1px solid var(--rail)}
+.lamp i[data-on="1"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.lamp small{font-family:"IBM Plex Mono",monospace; font-size:9.5px; color:var(--faint)}
+.sig{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px}
+.sigbox{border:1px solid var(--rail); border-radius:7px; padding:9px 11px; background:var(--sunk)}
+.sigbox .k{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:10px; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:4px}
+.sigbox .s{display:flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace;
+  font-size:15px; font-weight:600}
+.led{width:11px; height:11px; border-radius:50%; background:var(--rail); border:1px solid var(--faint); flex:none}
+.led.on{background:var(--live); border-color:var(--live); box-shadow:0 0 7px var(--live)}
+.led.green.on{background:var(--accent); border-color:var(--accent); box-shadow:0 0 7px var(--accent)}
+.cmpnote{margin-top:9px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+  background:var(--sunk); border:1px solid var(--rail-soft); border-radius:6px; padding:8px 10px}
+.slowbar{margin-top:12px; padding:11px 13px; background:var(--sunk); border:1px solid var(--rail-soft);
+  border-radius:7px; font-size:13px; line-height:1.5}
+.slowbar b{font-family:"IBM Plex Mono",monospace; color:var(--live)}
+.pill{display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;
+  font-family:"IBM Plex Sans Condensed",sans-serif; letter-spacing:.06em; text-transform:uppercase}
+.pill.warn{background:var(--live-soft); color:var(--live)}
+.clkbtn{font-size:15px !important; padding:10px 18px !important}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <h1>Data Converter Bench</h1>
+    <span class="eyebrow">Topic&nbsp;3 · slides&nbsp;54–55</span>
+  </div>
+  <p class="sub">Two converters, one formula. <b>Part 1</b> is a D/A you set and drive. <b>Part 2</b> is a ramp A/D built from that same D/A. Everything on this page is computed from <span class="mono">V<sub>ref</sub> ÷ 2<sup>n</sup></span>.</p>
+
+
+  <div class="stages">
+    <section class="stage s1">
+      <div class="stage-hd"><span class="n">01</span><h3>Predict, then run</h3></div>
+      <div class="when">8 minutes · no AI</div>
+      <ol>
+        <li>Screens down. On paper, for <b>8 bits on a 5&nbsp;V reference</b>: how many levels, the step size, the output at code 128, and the output at full scale.</li>
+        <li>Still on paper: change the reference to <b>10&nbsp;V</b>. Does the step go up, down or stay — and by how much?</li>
+        <li>Back to 5&nbsp;V, now <b>12 bits</b>. Same question.</li>
+        <li>How many bits would you need to resolve <b>1&nbsp;mV</b> on a 5&nbsp;V reference?</li>
+      </ol>
+      <div class="rule">Then open the bench and check all four. Mark each one right or wrong. <b>The wrong ones are the useful ones</b> — write one line on what you had wrong.</div>
+    </section>
+
+    <section class="stage s2">
+      <div class="stage-hd"><span class="n">02</span><h3>Make AI commit</h3></div>
+      <div class="when">10 minutes · AI never gives the answer</div>
+      <p style="margin:0 0 4px;font-size:13.5px">Paste this, exactly as written:</p>
+      <pre>I have a simulator of an 8-bit D/A
+converter with an adjustable reference.
+Make FIVE specific, numerical, testable
+claims about what it will show when the
+reference is 7.5 V. Each claim must be a
+single number or a yes/no. Number them
+1 to 5. Do not explain. Do not hedge.</pre>
+      <div class="rule">Set the bench to <b>8 bits, 7.5&nbsp;V</b> and test every claim against it. Mark each <b>true</b> or <b>false</b>. Report your score out of five — and for each false one, say what AI got wrong.</div>
+    </section>
+
+    <section class="stage s3">
+      <div class="stage-hd"><span class="n">03</span><h3>Settle it</h3></div>
+      <div class="when">9 minutes · together, then alone</div>
+      <ul>
+        <li>Scores on the board. How many of five did AI get right?</li>
+        <li>One question for the room: <b>why is full scale 4.9805&nbsp;V and not 5.000&nbsp;V?</b></li>
+        <li>You must measure 0–5&nbsp;V to the nearest millivolt. How many bits, which ladder, and why?</li>
+      </ul>
+      <div class="rule">Finish these two, in writing:<br>• Before today I thought a converter at its highest code would output …<br>• AI got __ of 5 right. The one it got wrong was wrong because …</div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <!-- ============ CONTROLS ============ -->
+    <div>
+      <section class="panel">
+        <div class="panel-hd"><h2>Part 1 · D/A — converter setup</h2><span class="note">these settings drive both parts</span></div>
+
+        <div class="ctl">
+          <div class="ctl-lab"><span>Resolution</span><span class="ctl-val" id="v-bits">8 bits</span></div>
+          <div class="seg wide" id="seg-bits" role="group" aria-label="Resolution in bits"></div>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-lab"><label for="in-vref">Reference voltage</label><span class="ctl-val" id="v-vref">5.00 V</span></div>
+          <input type="range" id="in-vref" min="1" max="15" step="0.1" value="5">
+          <div class="seg" id="seg-vref" style="margin-top:7px" role="group" aria-label="Reference voltage presets"></div>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-lab"><span>Ladder network</span></div>
+          <div class="seg wide" id="seg-ladder" role="group" aria-label="Ladder type"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hd"><h2>Digital input</h2><span class="note" id="bit-note"></span></div>
+        <div class="bits" id="bits"></div>
+        <div class="ctl" style="margin-top:14px">
+          <div class="ctl-lab"><label for="in-code">Input code</label><span class="ctl-val" id="v-code">128</span></div>
+          <input type="range" id="in-code" min="0" max="255" step="1" value="128">
+        </div>
+        <div class="rowbtns">
+          <button type="button" class="primary" id="btn-run">▶ Run counter</button>
+          <button type="button" id="btn-zero">Clear</button>
+          <button type="button" id="btn-full">Full scale</button>
+        </div>
+        <div class="ctl" style="margin-top:14px;margin-bottom:0">
+          <div class="ctl-lab"><span>Sweep speed</span><span class="ctl-val" id="v-speed">&nbsp;</span></div>
+          <div class="seg wide" id="seg-speed" role="group" aria-label="Counter sweep speed"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ OUTPUT ============ -->
+    <div>
+      <section class="panel">
+        <div class="panel-hd"><h2>Analogue output</h2><span class="note">op-amp output, ideal</span></div>
+        <div class="readout">
+          <div class="cell"><div class="k">Levels 2<sup>n</sup></div><div class="v" id="r-levels">256</div></div>
+          <div class="cell hero"><div class="k">Step size · 1 LSB</div><div class="v" id="r-step">0.01953 <span class="u">V</span></div></div>
+          <div class="cell"><div class="k">V out</div><div class="v" id="r-vout">2.5000 <span class="u">V</span></div></div>
+          <div class="cell"><div class="k">Full scale</div><div class="v" id="r-fs">4.9805 <span class="u">V</span></div></div>
+        </div>
+        <div class="sum" id="r-sum"></div>
+        <div class="word" id="r-word"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hd"><h2>Transfer characteristic</h2><span class="note" id="chart-note"></span></div>
+        <div class="charts">
+          <div>
+            <svg id="stair" viewBox="0 0 560 290" role="img" aria-label="Output voltage against input code"></svg>
+            <p class="cap">Every code, zero to full scale.</p>
+          </div>
+          <div>
+            <svg id="zoom" viewBox="0 0 250 290" role="img" aria-label="The first five codes, magnified"></svg>
+            <p class="cap">First five codes, magnified — this is the picture on slide 54.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ CIRCUIT ============ -->
+  <section class="panel">
+    <div class="panel-hd"><h2 id="circ-title">Binary weighted ladder</h2><span class="note" id="circ-note"></span></div>
+    <div style="overflow-x:auto">
+      <svg id="circuit" viewBox="0 0 760 330" style="max-width:820px;margin:0 auto" role="img" aria-label="Ladder network schematic with live switch positions"></svg>
+    </div>
+  </section>
+
+  <!-- ============ WHY R-2R ============ -->
+  <section class="panel">
+    <div class="panel-hd"><h2>Why two ladders exist</h2><span class="note">recomputed at every resolution</span></div>
+    <div class="compare">
+      <div class="card" id="card-bw">
+        <h3>Binary weighted</h3>
+        <dl>
+          <dt>Resistor values needed</dt><dd id="bw-count">8</dd>
+          <dt>Smallest</dt><dd id="bw-min">10 kΩ</dd>
+          <dt>Largest</dt><dd id="bw-max">1.28 MΩ</dd>
+          <dt>Spread</dt><dd id="bw-ratio">128 : 1</dd>
+          <dt>MSB tolerance</dt><dd id="bw-tol">0.39 %</dd>
+        </dl>
+        <p class="flag" id="bw-flag"></p>
+      </div>
+      <div class="card" id="card-r2r">
+        <h3>R–2R ladder</h3>
+        <dl>
+          <dt>Resistor values needed</dt><dd>2</dd>
+          <dt>Smallest</dt><dd>10 kΩ</dd>
+          <dt>Largest</dt><dd>20 kΩ</dd>
+          <dt>Spread</dt><dd>2 : 1</dd>
+          <dt>MSB tolerance</dt><dd id="r2r-tol">0.39 %</dd>
+        </dl>
+        <p class="flag ok">Two values at any resolution. The matching still has to be good — but matching two values on one substrate is a manufacturing problem, not a procurement one.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ PART 2 · A/D ============ -->
+  <section class="panel">
+    <div class="panel-hd"><h2>Part 2 · A/D — ramp (counter) type</h2><span class="note">clock it yourself, one pulse at a time</span></div>
+    <p style="margin:0 0 14px;font-size:14px;color:var(--muted);max-width:78ch">
+      A ramp A/D is the D/A above, plus a comparator and a counter. Press <b style="color:var(--ink)">START</b> to sample
+      and hold the input and reset the counter, then press <b style="color:var(--ink)">CLK</b> to advance it one count at
+      a time. Watch the D/A output climb, and watch the comparator flip the instant it reaches the held input —
+      <b style="color:var(--ink)">that count is the answer.</b>
+    </p>
+    <div class="adcgrid">
+      <div>
+        <div class="ctl">
+          <div class="ctl-lab"><label for="in-vin">Analogue input</label><span class="ctl-val" id="v-vin">3.000 V</span></div>
+          <input type="range" id="in-vin" min="0" max="5" step="0.001" value="3">
+          <p class="cap" id="sh-note" style="margin-top:5px">Locked while a conversion is running — that is the sample-and-hold.</p>
+        </div>
+        <div class="rowbtns">
+          <button type="button" class="primary clkbtn" id="btn-start">START</button>
+          <button type="button" class="clkbtn" id="btn-clk">CLK ▸</button>
+        </div>
+        <div class="rowbtns">
+          <button type="button" id="btn-run">▶ Run</button>
+          <button type="button" id="btn-reset">Reset</button>
+          <button type="button" id="btn-demo">4-bit demo</button>
+        </div>
+        <div class="ctl" style="margin-top:14px">
+          <div class="ctl-lab"><span>Clock rate (for the timing figures)</span></div>
+          <div class="seg wide" id="seg-clk" role="group" aria-label="Counter clock frequency"></div>
+        </div>
+        <div class="slowbar" id="adc-slow"></div>
+      </div>
+
+      <div>
+        <div class="ctl" style="margin-bottom:12px">
+          <div class="ctl-lab"><span>Counter output</span><span class="ctl-val" id="a-count">0</span></div>
+          <div class="lamps" id="lamps"></div>
+        </div>
+        <div class="sig">
+          <div class="sigbox">
+            <div class="k">Sampled input (held)</div>
+            <div class="s" id="a-held">—</div>
+          </div>
+          <div class="sigbox">
+            <div class="k">D/A output</div>
+            <div class="s" id="a-vdac">0.0000 V</div>
+          </div>
+          <div class="sigbox">
+            <div class="k">Comparator output</div>
+            <div class="s"><span class="led" id="led-cmp"></span><span id="a-cmp">—</span></div>
+          </div>
+          <div class="sigbox">
+            <div class="k">Status</div>
+            <div class="s"><span class="led green" id="led-eoc"></span><span id="a-eoc">idle</span></div>
+          </div>
+        </div>
+        <div class="cmpnote" id="a-cmpnote"></div>
+        <svg id="adcchart" viewBox="0 0 640 250" style="margin-top:12px" role="img" aria-label="Counter ramp climbing towards the held input"></svg>
+        <p class="cap">Each clock pulse adds one step. The conversion ends the moment the staircase reaches the dashed line.</p>
+      </div>
+    </div>
+    <div style="overflow-x:auto;margin-top:16px">
+      <svg id="adcblock" viewBox="0 0 780 440" style="max-width:820px;margin:0 auto" role="img" aria-label="Ramp A/D block diagram"></svg>
+    </div>
+  </section>
+
+  <p class="foot">Output is the ideal converter output: <code>Vout = code × Vref ÷ 2ⁿ</code>. Binary weighted branch resistors are <code>R<sub>i</sub> = 10 kΩ × 2^(n−1−i)</code> with <code>R<sub>f</sub> = 5 kΩ</code>, so the MSB contributes half of full scale and the LSB contributes one step. MSB tolerance is the error that would cost half a step: <code>1 ÷ 2ⁿ</code>.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var S = { bits:8, vref:5, code:128, ladder:"bw", speed:85 };
+  var BITS=[4,6,8,10,12,13,14,16], VREFS=[3.3,4,5,7.5,10];
+  var SPEEDS=[["Slow",150],["Medium",85],["Fast",45]];
+  var FRAMES=150;
+  var $ = function(id){ return document.getElementById(id); };
+
+  function levels(){ return Math.pow(2,S.bits); }
+  function step(){ return S.vref/levels(); }
+  function vout(){ return S.code*step(); }
+  function fs(){ return (levels()-1)*step(); }
+
+  function fmtV(v){
+    if(v===0) return "0.0000";
+    if(Math.abs(v)<0.001) return v.toFixed(6);
+    if(Math.abs(v)<0.01) return v.toFixed(5);
+    return v.toFixed(4);
+  }
+  function fmtOhm(r){
+    if(r>=1e6) return (r/1e6).toFixed(r/1e6<10?2:1)+" MΩ";
+    if(r>=1e3) return (r/1e3).toFixed(r/1e3<100?1:0)+" kΩ";
+    return r.toFixed(0)+" Ω";
+  }
+  function css(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  /* ---------- build static controls ---------- */
+  function buildSegs(){
+    var sb=$("seg-bits"); sb.innerHTML="";
+    BITS.forEach(function(b){
+      var el=document.createElement("button");
+      el.type="button"; el.textContent=b; el.setAttribute("aria-pressed", b===S.bits);
+      el.setAttribute("aria-label", b+" bits");
+      el.onclick=function(){
+        var frac = S.code/Math.max(1,levels()-1);
+        S.bits=b;
+        S.code=Math.min(levels()-1, Math.round(frac*(levels()-1)));
+        buildBits(); render();
+      };
+      sb.appendChild(el);
+    });
+    var sv=$("seg-vref"); sv.innerHTML="";
+    VREFS.forEach(function(v){
+      var el=document.createElement("button");
+      el.type="button"; el.textContent=v+" V";
+      el.onclick=function(){ S.vref=v; $("in-vref").value=v; render(); };
+      sv.appendChild(el);
+    });
+    var sp=$("seg-speed"); sp.innerHTML="";
+    SPEEDS.forEach(function(p){
+      var b=document.createElement("button");
+      b.type="button"; b.textContent=p[0]; b.dataset.ms=p[1];
+      b.onclick=function(){ S.speed=p[1]; render(); };
+      sp.appendChild(b);
+    });
+    var sl=$("seg-ladder"); sl.innerHTML="";
+    [["bw","Binary weighted"],["r2r","R–2R"]].forEach(function(p){
+      var el=document.createElement("button");
+      el.type="button"; el.textContent=p[1]; el.dataset.k=p[0];
+      el.setAttribute("aria-pressed", p[0]===S.ladder);
+      el.onclick=function(){ S.ladder=p[0]; render(); };
+      sl.appendChild(el);
+    });
+  }
+
+  function buildBits(){
+    var host=$("bits"); host.innerHTML="";
+    for(var i=0;i<S.bits;i++){
+      (function(i){
+        var w=document.createElement("div");
+        w.className="bit"+(i===S.bits-1?" msb":"");
+        var b=document.createElement("button");
+        b.type="button"; b.dataset.i=i;
+        b.setAttribute("aria-label","Bit D"+i);
+        b.onclick=function(){ S.code ^= (1<<i); render(); };
+        var s=document.createElement("small");
+        s.textContent="D"+i;
+        w.appendChild(b); w.appendChild(s); host.appendChild(w);
+      })(i);
+    }
+    $("bit-note").textContent = "D"+(S.bits-1)+" is the MSB";
+  }
+
+  /* ---------- charts ---------- */
+  var PAD={l:52,r:14,t:16,b:38};
+  function axes(w,h,xmax,ymax,xlab,ylab,xticks,yticks){
+    var ink=css("--ink"), faint=css("--faint"), rail=css("--rail-soft");
+    var s='';
+    var X=function(v){ return PAD.l+(v/xmax)*(w-PAD.l-PAD.r); };
+    var Y=function(v){ return h-PAD.b-(v/ymax)*(h-PAD.t-PAD.b); };
+    yticks.forEach(function(t){
+      s+='<line x1="'+PAD.l+'" y1="'+Y(t).toFixed(1)+'" x2="'+(w-PAD.r)+'" y2="'+Y(t).toFixed(1)+'" stroke="'+rail+'" stroke-width="1"/>';
+      s+='<text x="'+(PAD.l-8)+'" y="'+(Y(t)+4).toFixed(1)+'" text-anchor="end" fill="'+faint+'" font-size="11" font-family="IBM Plex Mono, monospace">'+t.lab+'</text>';
+    });
+    xticks.forEach(function(t){
+      s+='<text x="'+X(t).toFixed(1)+'" y="'+(h-PAD.b+17)+'" text-anchor="middle" fill="'+faint+'" font-size="11" font-family="IBM Plex Mono, monospace">'+t.lab+'</text>';
+    });
+    s+='<line x1="'+PAD.l+'" y1="'+(h-PAD.b)+'" x2="'+(w-PAD.r)+'" y2="'+(h-PAD.b)+'" stroke="'+css("--rail")+'" stroke-width="1"/>';
+    s+='<text x="'+((PAD.l+w-PAD.r)/2)+'" y="'+(h-4)+'" text-anchor="middle" fill="'+faint+'" font-size="11.5">'+xlab+'</text>';
+    s+='<text transform="translate(13,'+((PAD.t+h-PAD.b)/2)+') rotate(-90)" text-anchor="middle" fill="'+faint+'" font-size="11.5">'+ylab+'</text>';
+    return {s:s, X:X, Y:Y};
+  }
+  function tick(v,lab){ var o=Number(v); o.lab=lab; return o; }
+  function mk(v,lab){ var n=new Number(v); n.lab=lab; n.valueOf=function(){return v;}; return n; }
+
+  function drawStair(){
+    var w=560,h=290, L=levels(), st=step(), top=S.vref;
+    var yt=[0,.25,.5,.75,1].map(function(f){ return mk(top*f,(top*f).toFixed(2)); });
+    var xt=[0,.25,.5,.75,1].map(function(f){ return mk((L-1)*f, Math.round((L-1)*f)); });
+    var A=axes(w,h,L-1||1,top,"Input code","Output (V)",xt,yt);
+    var s=A.s, accent=css("--accent"), live=css("--live");
+
+    var d="", i;
+    if(L<=512){
+      d="M"+A.X(0).toFixed(2)+" "+A.Y(0).toFixed(2);
+      for(i=0;i<L;i++){
+        var x0=A.X(i), x1=A.X(Math.min(i+1,L-1)), y=A.Y(i*st);
+        d+=" L"+x0.toFixed(2)+" "+y.toFixed(2)+" L"+x1.toFixed(2)+" "+y.toFixed(2);
+      }
+    } else {
+      d="M"+A.X(0).toFixed(2)+" "+A.Y(0).toFixed(2)+" L"+A.X(L-1).toFixed(2)+" "+A.Y(fs()).toFixed(2);
+    }
+    s+='<path d="'+d+'" fill="none" stroke="'+accent+'" stroke-width="1.7" stroke-linejoin="miter"/>';
+
+    var cx=A.X(S.code), cy=A.Y(vout());
+    s+='<line x1="'+PAD.l+'" y1="'+cy.toFixed(1)+'" x2="'+cx.toFixed(1)+'" y2="'+cy.toFixed(1)+'" stroke="'+live+'" stroke-width="1" stroke-dasharray="3 3"/>';
+    s+='<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+cx.toFixed(1)+'" y2="'+(h-PAD.b)+'" stroke="'+live+'" stroke-width="1" stroke-dasharray="3 3"/>';
+    s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="4.5" fill="'+live+'"/>';
+    $("stair").innerHTML=s;
+    $("chart-note").textContent = L<=512 ? L+" discrete steps" : L.toLocaleString()+" steps — too fine to draw individually";
+  }
+
+  function drawZoom(){
+    var w=250,h=290, st=step(), N=5, top=st*(N+0.35);
+    var yt=[], i;
+    for(i=0;i<=N;i++) yt.push(mk(st*i, (st*i).toFixed(st<0.01?5:4)));
+    var xt=[]; for(i=0;i<=N;i++) if(i%1===0) xt.push(mk(i,i));
+    var P={l:62,r:12,t:16,b:38}, old=PAD; PAD=P;
+    var A=axes(w,h,N+0.35,top,"Input code","Output (V)",xt,yt);
+    PAD=old;
+    var s=A.s, accent=css("--accent"), ink=css("--ink");
+
+    var d="M"+A.X(0).toFixed(2)+" "+A.Y(0).toFixed(2);
+    for(i=0;i<=N;i++){
+      var x0=A.X(i), x1=A.X(Math.min(i+1,N+0.35)), y=A.Y(i*st);
+      d+=" L"+x0.toFixed(2)+" "+y.toFixed(2)+" L"+x1.toFixed(2)+" "+y.toFixed(2);
+    }
+    s+='<path d="'+d+'" fill="none" stroke="'+accent+'" stroke-width="2.1" stroke-linejoin="miter"/>';
+
+    // STEP SIZE bracket on the last riser drawn
+    var bx=A.X(N-0.42), y0=A.Y(st*(N-1)), y1=A.Y(st*N);
+    s+='<line x1="'+bx.toFixed(1)+'" y1="'+y0.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+y1.toFixed(1)+'" stroke="'+ink+'" stroke-width="1.3"/>';
+    s+='<path d="M'+(bx-3.5)+' '+(y1+4.5)+' L'+bx+' '+y1+' L'+(bx+3.5)+' '+(y1+4.5)+'" fill="none" stroke="'+ink+'" stroke-width="1.3"/>';
+    s+='<path d="M'+(bx-3.5)+' '+(y0-4.5)+' L'+bx+' '+y0+' L'+(bx+3.5)+' '+(y0-4.5)+'" fill="none" stroke="'+ink+'" stroke-width="1.3"/>';
+    s+='<text x="'+(bx-7)+'" y="'+((y0+y1)/2-2).toFixed(1)+'" text-anchor="end" fill="'+ink+'" font-size="10" font-weight="600" font-family="IBM Plex Sans Condensed, sans-serif">STEP</text>';
+    s+='<text x="'+(bx-7)+'" y="'+((y0+y1)/2+9).toFixed(1)+'" text-anchor="end" fill="'+ink+'" font-size="10" font-weight="600" font-family="IBM Plex Sans Condensed, sans-serif">SIZE</text>';
+    $("zoom").innerHTML=s;
+  }
+
+  /* ---------- circuit ---------- */
+  function res(x,y,len,vertical,label,on){
+    var c = on?css("--live"):css("--faint");
+    var tc = on?css("--live"):css("--muted");
+    var s='', n=6, i, seg=len/(n+1);
+    var pts=[];
+    if(!vertical){
+      pts.push([x,y]);
+      for(i=0;i<n;i++) pts.push([x+seg*(i+0.5)+seg*0.5, y+(i%2?5:-5)]);
+      pts.push([x+len,y]);
+    } else {
+      pts.push([x,y]);
+      for(i=0;i<n;i++) pts.push([x+(i%2?5:-5), y+seg*(i+0.5)+seg*0.5]);
+      pts.push([x,y+len]);
+    }
+    s+='<polyline points="'+pts.map(function(p){return p[0].toFixed(1)+","+p[1].toFixed(1);}).join(" ")+'" fill="none" stroke="'+c+'" stroke-width="'+(on?1.9:1.3)+'"/>';
+    if(label){
+      if(!vertical) s+='<text x="'+(x+len/2)+'" y="'+(y-11)+'" text-anchor="middle" fill="'+tc+'" font-size="10.5" font-family="IBM Plex Mono, monospace">'+label+'</text>';
+      else s+='<text x="'+(x+11)+'" y="'+(y+len/2+3.5)+'" fill="'+tc+'" font-size="10.5" font-family="IBM Plex Mono, monospace">'+label+'</text>';
+    }
+    return s;
+  }
+  function opamp(x,y,live){
+    var c=css("--ink"), f=css("--faint");
+    var s='<path d="M'+x+' '+(y-38)+' L'+x+' '+(y+38)+' L'+(x+62)+' '+y+' Z" fill="'+css("--sunk")+'" stroke="'+c+'" stroke-width="1.4"/>';
+    s+='<text x="'+(x+11)+'" y="'+(y-12)+'" fill="'+c+'" font-size="14" font-family="IBM Plex Mono, monospace">−</text>';
+    s+='<text x="'+(x+11)+'" y="'+(y+21)+'" fill="'+c+'" font-size="13" font-family="IBM Plex Mono, monospace">+</text>';
+    s+='<line x1="'+x+'" y1="'+(y+18)+'" x2="'+(x-22)+'" y2="'+(y+18)+'" stroke="'+f+'" stroke-width="1.2"/>';
+    s+=gnd(x-22,y+18);
+    return s;
+  }
+  function gnd(x,y){
+    var f=css("--faint"); var s='<line x1="'+x+'" y1="'+y+'" x2="'+x+'" y2="'+(y+12)+'" stroke="'+f+'" stroke-width="1.2"/>';
+    s+='<line x1="'+(x-8)+'" y1="'+(y+12)+'" x2="'+(x+8)+'" y2="'+(y+12)+'" stroke="'+f+'" stroke-width="1.4"/>';
+    s+='<line x1="'+(x-4.5)+'" y1="'+(y+16)+'" x2="'+(x+4.5)+'" y2="'+(y+16)+'" stroke="'+f+'" stroke-width="1.3"/>';
+    s+='<line x1="'+(x-1.5)+'" y1="'+(y+20)+'" x2="'+(x+1.5)+'" y2="'+(y+20)+'" stroke="'+f+'" stroke-width="1.2"/>';
+    return s;
+  }
+  function sw(x,y,on){
+    var c = on?css("--live"):css("--faint");
+    var s='<circle cx="'+x+'" cy="'+y+'" r="2.6" fill="'+c+'"/>';
+    s+='<circle cx="'+(x+30)+'" cy="'+y+'" r="2.6" fill="'+c+'"/>';
+    if(on) s+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+30)+'" y2="'+y+'" stroke="'+c+'" stroke-width="1.9"/>';
+    else s+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+26)+'" y2="'+(y-11)+'" stroke="'+c+'" stroke-width="1.5"/>';
+    return s;
+  }
+
+  function drawCircuit(){
+    var W=760,H=330, show=Math.min(S.bits,8);
+    var ink=css("--ink"), f=css("--faint"), muted=css("--muted"), live=css("--live");
+    var s='', i, rowH=Math.min(34, 250/show), y0=46;
+    var busX=470, ampX=540, ampY=H/2-10, outX=666, sumX=busX, rfLabel="Rf";
+
+    if(S.ladder==="bw"){
+      for(i=0;i<show;i++){
+        var bi=S.bits-1-i;                       // MSB at top
+        var on=((S.code>>bi)&1)===1;
+        var y=y0+i*rowH;
+        var R=10000*Math.pow(2,S.bits-1-bi);
+        s+='<text x="18" y="'+(y+4)+'" fill="'+(on?live:muted)+'" font-size="12" font-family="IBM Plex Mono, monospace">D'+bi+'</text>';
+        s+=sw(48,y,on);
+        s+='<line x1="78" y1="'+y+'" x2="106" y2="'+y+'" stroke="'+(on?live:f)+'" stroke-width="'+(on?1.9:1.3)+'"/>';
+        s+=res(106,y,120,false,fmtOhm(R),on);
+        s+='<line x1="226" y1="'+y+'" x2="'+busX+'" y2="'+y+'" stroke="'+(on?live:f)+'" stroke-width="'+(on?1.9:1.3)+'"/>';
+        s+='<circle cx="'+busX+'" cy="'+y+'" r="2.6" fill="'+(on?live:f)+'"/>';
+      }
+      s+='<text x="18" y="26" fill="'+muted+'" font-size="11" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="600" letter-spacing=".08em">SWITCH TO V_REF</text>';
+      s+='<line x1="'+busX+'" y1="'+y0+'" x2="'+busX+'" y2="'+(y0+(show-1)*rowH)+'" stroke="'+f+'" stroke-width="1.3"/>';
+      s+='<line x1="'+busX+'" y1="'+ampY+'" x2="'+ampX+'" y2="'+ampY+'" stroke="'+f+'" stroke-width="1.3"/>';
+      sumX=busX; rfLabel="Rf = 5 kΩ";
+    } else {
+      var n=show, x0=58, dx=Math.min(64,(busX-x0-30)/n);
+      s+='<text x="18" y="26" fill="'+muted+'" font-size="11" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="600" letter-spacing=".08em">SWITCH TO V_REF</text>';
+      var railY=H-118, topY=74;
+      for(i=0;i<n;i++){
+        var bi2=i;                               // LSB at left
+        var on2=((S.code>>bi2)&1)===1;
+        var x=x0+i*dx;
+        s+='<text x="'+(x-9)+'" y="'+(topY-30)+'" fill="'+(on2?live:muted)+'" font-size="12" font-family="IBM Plex Mono, monospace">D'+bi2+'</text>';
+        s+=sw(x-15,topY-16,on2);
+        s+='<line x1="'+x+'" y1="'+(topY-16)+'" x2="'+x+'" y2="'+topY+'" stroke="'+(on2?live:f)+'" stroke-width="'+(on2?1.9:1.3)+'"/>';
+        s+=res(x,topY,58,true,"2R",on2);
+        s+='<circle cx="'+x+'" cy="'+railY+'" r="2.6" fill="'+(on2?live:f)+'"/>';
+        s+='<line x1="'+x+'" y1="'+(topY+58)+'" x2="'+x+'" y2="'+railY+'" stroke="'+(on2?live:f)+'" stroke-width="'+(on2?1.9:1.3)+'"/>';
+        if(i<n-1) s+=res(x+6,railY,dx-12,false,"R",false);
+      }
+      s+='<line x1="'+(x0-34)+'" y1="'+railY+'" x2="'+x0+'" y2="'+railY+'" stroke="'+f+'" stroke-width="1.3"/>';
+      s+=res(x0-34,railY-58,58,true,"2R",false);
+      s+=gnd(x0-34,railY);
+      s+='<line x1="'+(x0+(n-1)*dx)+'" y1="'+railY+'" x2="'+ampX+'" y2="'+railY+'" stroke="'+f+'" stroke-width="1.3"/>';
+      ampY=railY; sumX=x0+(n-1)*dx; rfLabel="Rf = 2R";
+    }
+
+    /* feedback resistor: summing node → output node, routed above the amp */
+    var rfY=ampY-88;
+    s+='<line x1="'+sumX+'" y1="'+rfY+'" x2="'+sumX+'" y2="'+ampY+'" stroke="'+f+'" stroke-width="1.3"/>';
+    s+=res(sumX,rfY,outX-sumX,false,rfLabel,false);
+    s+='<line x1="'+outX+'" y1="'+rfY+'" x2="'+outX+'" y2="'+ampY+'" stroke="'+f+'" stroke-width="1.3"/>';
+
+    s+=opamp(ampX,ampY,false);
+    s+='<line x1="'+(ampX+62)+'" y1="'+ampY+'" x2="'+outX+'" y2="'+ampY+'" stroke="'+f+'" stroke-width="1.3"/>';
+    s+='<circle cx="'+outX+'" cy="'+ampY+'" r="3.4" fill="none" stroke="'+ink+'" stroke-width="1.3"/>';
+    s+='<text x="'+(outX+11)+'" y="'+(ampY-7)+'" fill="'+ink+'" font-size="12" font-family="IBM Plex Mono, monospace">Vout</text>';
+    s+='<text x="'+(outX+11)+'" y="'+(ampY+12)+'" fill="'+css("--accent")+'" font-size="13.5" font-weight="600" font-family="IBM Plex Mono, monospace">'+fmtV(vout())+'</text>';
+    s+='<text x="'+(outX+11)+'" y="'+(ampY+27)+'" fill="'+css("--muted")+'" font-size="11" font-family="IBM Plex Mono, monospace">volts</text>';
+    $("circuit").innerHTML=s;
+
+    $("circ-title").textContent = S.ladder==="bw" ? "Binary weighted ladder" : "R–2R ladder";
+    $("circ-note").textContent = (S.bits>8 ? "showing D0–D7 of "+S.bits+" · " : "") +
+      (S.ladder==="bw" ? "each branch resistor halves as the bit weight doubles" : "the same two values repeat, whatever the resolution");
+  }
+
+  /* ---------- compare ---------- */
+  function drawCompare(){
+    var n=S.bits, rmin=10000, rmax=10000*Math.pow(2,n-1);
+    $("bw-count").textContent=n;
+    $("bw-min").textContent=fmtOhm(rmin);
+    $("bw-max").textContent=fmtOhm(rmax);
+    $("bw-ratio").textContent=Math.pow(2,n-1).toLocaleString()+" : 1";
+    var tol=100/Math.pow(2,n);
+    var tolTxt=(tol<0.01?tol.toFixed(4):tol.toFixed(2))+" %";
+    $("bw-tol").textContent=tolTxt;
+    $("r2r-tol").textContent=tolTxt;
+    var fl=$("bw-flag");
+    if(n>=10) fl.textContent="At "+n+" bits you need "+fmtOhm(rmax)+" sitting beside "+fmtOhm(rmin)+", each held to "+tolTxt+". That is why this ladder stops being practical.";
+    else if(n===8) fl.textContent="Already a "+Math.pow(2,n-1)+":1 spread. Every resistor must hold "+tolTxt+" over temperature and age.";
+    else fl.textContent="Workable at this resolution — the spread is still small and the tolerance is loose.";
+    $("card-bw").className="card"+(S.ladder==="bw"?" on":"");
+    $("card-r2r").className="card"+(S.ladder==="r2r"?" on":"");
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    var L=levels(), st=step();
+    if(S.code>L-1) S.code=L-1;
+    if(S.code<0) S.code=0;
+
+    $("v-bits").textContent=S.bits+" bits";
+    $("v-vref").textContent=S.vref.toFixed(2)+" V";
+    $("v-code").textContent=S.code;
+    var ic=$("in-code"); ic.max=L-1; ic.value=S.code;
+
+    Array.prototype.forEach.call($("seg-bits").children,function(b){ b.setAttribute("aria-pressed", Number(b.textContent)===S.bits); });
+    Array.prototype.forEach.call($("seg-vref").children,function(b){ b.setAttribute("aria-pressed", parseFloat(b.textContent)===S.vref); });
+    Array.prototype.forEach.call($("seg-ladder").children,function(b){ b.setAttribute("aria-pressed", b.dataset.k===S.ladder); });
+    Array.prototype.forEach.call($("seg-speed").children,function(b){ b.setAttribute("aria-pressed", Number(b.dataset.ms)===S.speed); });
+    var frames=Math.min(L, FRAMES), secs=frames*S.speed/1000;
+    $("v-speed").textContent = (secs<10? secs.toFixed(1): Math.round(secs))+" s sweep";
+    Array.prototype.forEach.call($("bits").children,function(w){
+      var b=w.firstChild, i=Number(b.dataset.i);
+      var on=((S.code>>i)&1)===1;
+      b.dataset.on=on?"1":"0"; b.textContent=on?"1":"0";
+      b.setAttribute("aria-pressed",on);
+    });
+
+    $("r-levels").textContent=L.toLocaleString();
+    $("r-step").innerHTML=fmtV(st)+' <span class="u">V</span>';
+    $("r-vout").innerHTML=fmtV(vout())+' <span class="u">V</span>';
+    $("r-fs").innerHTML=fmtV(fs())+' <span class="u">V</span>';
+    $("r-sum").innerHTML='step = '+S.vref.toFixed(2)+' V ÷ 2<sup>'+S.bits+'</sup> = '+S.vref.toFixed(2)+' ÷ '+L.toLocaleString()+' = <b>'+fmtV(st)+' V</b>';
+
+    var word="", i;
+    for(i=S.bits-1;i>=0;i--){
+      var on=((S.code>>i)&1)===1;
+      word += on?'<b>1</b>':'0';
+      if(i%4===0 && i>0) word+=" ";
+    }
+    $("r-word").innerHTML='code '+S.code+' &nbsp;=&nbsp; '+word+'<sub>2</sub> &nbsp;·&nbsp; '+S.code+' × '+fmtV(st)+' V = '+fmtV(vout())+' V';
+
+    drawStair(); drawZoom(); drawCircuit(); drawCompare();
+    if(document.getElementById('in-vin')) renderAdc();
+  }
+
+  /* ---------- events ---------- */
+  $("in-vref").addEventListener("input",function(){ S.vref=parseFloat(this.value); render(); });
+  $("in-code").addEventListener("input",function(){ S.code=parseInt(this.value,10); render(); });
+  $("btn-zero").addEventListener("click",function(){ stop(); S.code=0; render(); });
+  $("btn-full").addEventListener("click",function(){ stop(); S.code=levels()-1; render(); });
+
+  var timer=null;
+  function stop(){ if(timer){ clearInterval(timer); timer=null; $("btn-run").textContent="▶ Run counter"; } }
+  $("btn-run").addEventListener("click",function(){
+    if(timer){ stop(); return; }
+    this.textContent="■ Stop";
+    var L=levels(), stride=Math.max(1,Math.ceil(L/FRAMES));
+    S.code=0; render();
+    timer=setInterval(function(){
+      S.code+=stride;
+      if(S.code>=L){ S.code=L-1; render(); stop(); return; }
+      render();
+    }, S.speed);
+  });
+
+  var mq=window.matchMedia("(prefers-color-scheme: dark)");
+  if(mq.addEventListener) mq.addEventListener("change",render);
+  new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+
+  /* ═══════════ PART 2 · ramp A/D — manually clockable ═══════════ */
+  var CLKS=[[1e5,"100 kHz"],[1e6,"1 MHz"],[1e7,"10 MHz"]];
+  S.vin=3.0; S.clk=1e6;
+  S.held=null;      // sampled input, null when idle
+  S.count=0;        // counter value
+  S.done=false;     // conversion complete
+  S.pulses=0;       // CLK pulses applied since START
+
+  function adcSettled(){                      // the code a full conversion would give
+    var st=step(), L=levels();
+    var c = S.vin<=0 ? 0 : Math.ceil((S.vin-1e-12)/st);
+    return {code:Math.min(c,L-1), over:c>L-1};
+  }
+  function running(){ return S.held!==null && !S.done; }
+  function vdac(){ return S.count*step(); }
+  /* Comparator U1: held voltage on the + input, D/A output Vo on the − input.
+     Output is HIGH while Vin > Vo, i.e. while the conversion is still running, and
+     it drops LOW the moment the D/A reaches the input. That output does two jobs:
+     it gates the clock through the AND gate, and it drives the conversion lamp. */
+  function reached(){
+    if(S.held===null) return false;
+    return vdac() >= S.held - 1e-12;
+  }
+  function fmtTime(sec){
+    if(sec>=1) return sec.toFixed(2)+" s";
+    if(sec>=1e-3) return (sec*1e3).toFixed(sec*1e3<10?2:1)+" ms";
+    return (sec*1e6).toFixed(sec*1e6<10?2:0)+" µs";
+  }
+
+  function buildClk(){
+    var h=$("seg-clk"); h.innerHTML="";
+    CLKS.forEach(function(p){
+      var b=document.createElement("button");
+      b.type="button"; b.textContent=p[1]; b.dataset.hz=p[0];
+      b.onclick=function(){ S.clk=p[0]; renderAdc(); };
+      h.appendChild(b);
+    });
+  }
+  function buildLamps(){
+    var h=$("lamps"); h.innerHTML="";
+    for(var i=0;i<S.bits;i++){
+      var w=document.createElement("div"); w.className="lamp";
+      var b=document.createElement("i"); b.dataset.i=i;
+      var s=document.createElement("small"); s.textContent="D"+i;
+      w.appendChild(b); w.appendChild(s); h.appendChild(w);
+    }
+  }
+
+  /* ---- the ramp chart, drawn to wherever the counter has reached ---- */
+  function drawAdcChart(){
+    var w=640,h=250, st=step(), L=levels(), r=adcSettled();
+    var ref = (S.held===null? S.vin : S.held);
+    var span = Math.max(ref, S.count*st, st*4);
+    var top = span*1.20 + st;
+    var xmax = Math.max((S.held===null? r.code : Math.max(r.code,S.count))*1.22, 6);
+    var P={l:58,r:14,t:16,b:38}, old=PAD; PAD=P;
+    var yt=[0,.25,.5,.75,1].map(function(f){ return mk(top*f,(top*f).toFixed(2)); });
+    var xt=[0,.25,.5,.75,1].map(function(f){ return mk(xmax*f, Math.round(xmax*f)); });
+    var A=axes(w,h,xmax,top,"Clock pulses","Volts",xt,yt);
+    PAD=old;
+    var g=A.s, accent=css("--accent"), live=css("--live"), purple="#8C6BB1";
+
+    // staircase up to the present count
+    var N=Math.min(S.count, L-1), d, i;
+    if(N<=512){
+      d="M"+A.X(0).toFixed(2)+" "+A.Y(0).toFixed(2);
+      for(i=0;i<=N;i++){
+        var x0=A.X(i), x1=A.X(i+1), y=A.Y(Math.min(i*st,top));
+        d+=" L"+x0.toFixed(2)+" "+y.toFixed(2)+" L"+x1.toFixed(2)+" "+y.toFixed(2);
+      }
+    } else {
+      d="M"+A.X(0).toFixed(2)+" "+A.Y(0).toFixed(2)+" L"+A.X(N).toFixed(2)+" "+A.Y(Math.min(N*st,top)).toFixed(2);
+    }
+    g+='<path d="'+d+'" fill="none" stroke="'+accent+'" stroke-width="2.2" stroke-linejoin="miter"/>';
+
+    // the held (or live) input
+    var yv=A.Y(Math.min(ref,top));
+    g+='<line x1="'+P.l+'" y1="'+yv.toFixed(1)+'" x2="'+(w-P.r)+'" y2="'+yv.toFixed(1)+'" stroke="'+purple+'" stroke-width="2" stroke-dasharray="7 5"/>';
+    g+='<text x="'+(P.l+7)+'" y="'+(yv-8).toFixed(1)+'" fill="'+purple+'" font-size="11.5" font-weight="600" font-family="IBM Plex Sans Condensed, sans-serif">'
+       +(S.held===null?"INPUT":"HELD INPUT")+'  '+ref.toFixed(3)+' V</text>';
+
+    // where the counter is right now
+    if(S.held!==null){
+      var cx=A.X(S.count), cy=A.Y(Math.min(S.count*st,top));
+      g+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="5" fill="'+(S.done?live:accent)+'"/>';
+      if(S.done){
+        g+='<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+cx.toFixed(1)+'" y2="'+(h-P.b)+'" stroke="'+live+'" stroke-width="1" stroke-dasharray="3 3"/>';
+        var lx=(cx>w*0.72)?cx-9:cx+9, la=(cx>w*0.72)?"end":"start";
+        var ly=Math.max(cy,yv)+24;
+        g+='<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+la+'" fill="'+live+'" font-size="12" font-weight="600" font-family="IBM Plex Mono, monospace">code '+S.count+'</text>';
+      }
+    }
+    $("adcchart").innerHTML=g;
+  }
+
+  /* ---- block diagram, live ---- */
+  /* ---- schematic symbols ---- */
+  function wire(pts, on, w){
+    var c = on?css("--live"):css("--faint");
+    return '<polyline points="'+pts.map(function(p){return p[0]+","+p[1];}).join(" ")+
+           '" fill="none" stroke="'+c+'" stroke-width="'+(w||(on?2:1.4))+'" stroke-linejoin="round"/>';
+  }
+  function dot(x,y,on){
+    return '<circle cx="'+x+'" cy="'+y+'" r="3.4" fill="'+(on?css("--live"):css("--faint"))+'"/>';
+  }
+  function lbl(x,y,t,size,col,anchor,bold){
+    return '<text x="'+x+'" y="'+y+'" text-anchor="'+(anchor||"start")+'" fill="'+(col||css("--muted"))+
+           '" font-size="'+(size||10.5)+'" font-family="IBM Plex Mono, monospace"'+
+           (bold?' font-weight="600"':'')+'>'+t+'</text>';
+  }
+  function tag(x,y,t){   // U1, U2 … reference designators
+    return '<text x="'+x+'" y="'+y+'" fill="'+css("--faint")+'" font-size="11" font-style="italic" '+
+           'font-family="IBM Plex Sans, sans-serif">'+t+'</text>';
+  }
+  function comparator(x,y,w,h,on){
+    var c=on?css("--live"):css("--ink"), ink=css("--ink");
+    var s='<path d="M'+x+' '+y+' L'+x+' '+(y+h)+' L'+(x+w)+' '+(y+h/2)+' Z" fill="'+css("--sunk")+
+          '" stroke="'+c+'" stroke-width="'+(on?2:1.5)+'"/>';
+    s+=lbl(x+11,y+h*0.30+4,"+",15,ink,"start",true);
+    s+=lbl(x+11,y+h*0.76+4,"−",15,ink,"start",true);
+    return s;
+  }
+  function andGate(x,y,w,h,on){
+    var c=on?css("--live"):css("--ink"), r=h/2, flat=w-r;
+    var s='<path d="M'+x+' '+y+' L'+(x+flat)+' '+y+
+          ' A'+r+' '+r+' 0 0 1 '+(x+flat)+' '+(y+h)+' L'+x+' '+(y+h)+' Z" fill="'+css("--sunk")+
+          '" stroke="'+c+'" stroke-width="'+(on?2:1.5)+'"/>';
+    s+=lbl(x+13,y+h/2+4,"&amp;",13,css("--ink"),"start",true);
+    return s;
+  }
+  function notGate(x,y,w,h,on){
+    var c=on?css("--live"):css("--ink");
+    var s='<path d="M'+x+' '+y+' L'+x+' '+(y+h)+' L'+(x+w-6)+' '+(y+h/2)+' Z" fill="'+css("--sunk")+
+          '" stroke="'+c+'" stroke-width="'+(on?2:1.5)+'"/>';
+    s+='<circle cx="'+(x+w-3)+'" cy="'+(y+h/2)+'" r="3.6" fill="'+css("--surface")+'" stroke="'+c+
+       '" stroke-width="'+(on?2:1.5)+'"/>';
+    return s;
+  }
+  function led(x,y,on){
+    var c=on?css("--live"):css("--rail");
+    var s='<rect x="'+x+'" y="'+y+'" width="26" height="15" rx="2.5" fill="'+c+'" stroke="'+
+          (on?css("--live"):css("--faint"))+'" stroke-width="1.3"/>';
+    if(on) s+='<rect x="'+(x-3)+'" y="'+(y-3)+'" width="32" height="21" rx="4" fill="none" stroke="'+
+              css("--live")+'" stroke-width="1" opacity=".38"/>';
+    return s;
+  }
+  function pushBtn(x,y,label,active){
+    var c=active?css("--live"):css("--faint"), ink=css("--ink");
+    var s='<rect x="'+x+'" y="'+y+'" width="42" height="34" rx="4" fill="'+css("--sunk")+
+          '" stroke="'+c+'" stroke-width="'+(active?2:1.4)+'"/>';
+    s+=lbl(x+21,y-7,label,11.5,ink,"middle",true);
+    return s;
+  }
+  function icBox(x,y,w,h,on){
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" fill="'+css("--sunk")+
+           '" stroke="'+(on?css("--live"):css("--ink"))+'" stroke-width="'+(on?2:1.5)+'"/>';
+  }
+  function srcCircle(x,y,r,on){
+    var s='<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+css("--sunk")+'" stroke="'+
+          (on?"#8C6BB1":css("--faint"))+'" stroke-width="1.6"/>';
+    s+='<circle cx="'+x+'" cy="'+(y-r*0.42)+'" r="4" fill="#8C6BB1"/>';
+    return s;
+  }
+
+  /* ---- the ramp A/D drawn as a logic schematic ---- */
+  function drawAdcBlock(){
+    var ink=css("--ink"), muted=css("--muted"), purple="#8C6BB1";
+    var hit=reached(), en=(S.held!==null && !hit), run=running(), armed=(S.held!==null);
+    var g='';
+
+    /* Vin source → sample & hold */
+    g+=srcCircle(58,80,30,true);
+    g+=lbl(58,36,"Vin",12,muted,"middle",true);
+    g+=lbl(58,128,S.vin.toFixed(3),12.5,purple,"middle",true);
+    g+=wire([[88,80],[150,80]], armed);
+    g+=tag(152,44,"U5");
+    g+=icBox(150,52,96,56, armed);
+    g+=lbl(198,76,"Sample",11.5,ink,"middle",true);
+    g+=lbl(198,92,"&amp; Hold",11.5,ink,"middle",true);
+    g+=wire([[246,80],[276,80],[276,66],[306,66]], armed);
+    g+=lbl(296,56,S.held===null?"—":S.held.toFixed(2),10.5,purple,"end");
+
+    /* comparator U1 */
+    g+=tag(316,156,"U1");
+    g+=comparator(306,40,86,96, en);
+    g+=lbl(296,104,vdac().toFixed(2),10.5,css("--accent"),"end");
+
+    /* comparator output: HIGH while the conversion is still running */
+    g+=wire([[392,88],[440,88]], en);
+    g+=dot(440,88, en);
+    g+=lbl(416,80, armed?(en?"1":"0"):"—", 12, en?css("--live"):muted, "middle", true);
+
+    /* comparator output → AND gate, middle input */
+    g+=wire([[440,88],[520,88]], en);
+    /* CLK push button → AND gate, top input */
+    g+=pushBtn(690,24,"CLK", run);
+    g+=wire([[690,41],[505,41],[505,66],[520,66]], run);
+    g+=lbl(500,60,"CLK",9.5,muted,"end");
+    /* CLR → AND gate, bottom input, active low: while START is held the clock is inhibited */
+    g+='<path d="M478 378 L478 353 A7 7 0 0 0 478 337 L478 110 L510 110" fill="none" stroke="'+
+       css("--faint")+'" stroke-width="1.4" stroke-linejoin="round"/>';
+    g+='<circle cx="514" cy="110" r="4.2" fill="'+css("--surface")+'" stroke="'+css("--ink")+'" stroke-width="1.5"/>';
+    g+=lbl(474,104,"CLR",9.5,muted,"end");
+    g+=lbl(498,126,"1",11,muted,"middle",true);
+    g+=tag(548,158,"U2");
+    g+=andGate(520,44,70,88, en);
+    /* gated clock → counter clock input (edge triggered) */
+    g+=wire([[590,88],[625,88],[625,345],[440,345]], en);
+    g+='<path d="M432 345 L444 338 L444 352 Z" fill="none" stroke="'+(en?css("--live"):css("--ink"))+'" stroke-width="1.4"/>';
+    g+=lbl(600,78,"gated clock",10,muted,"start");
+
+    /* counter U4 */
+    g+=tag(152,310,"U4");
+    g+=icBox(150,316,282,76, run && en);
+    g+=lbl(291,360,"Counter",13,ink,"middle",true);
+    g+=lbl(424,349,"CLK",10.5,muted,"end");
+    g+=lbl(428,382,"CLR",10.5,muted,"end");
+    /* START push button → CLR, and back up to the sample & hold */
+    g+=pushBtn(688,361,"START", false);
+    g+=wire([[688,378],[432,378]], false);
+    g+=dot(660,378,false);
+    g+=dot(478,378,false);
+    g+=wire([[660,378],[660,30],[198,30],[198,52]], false);
+
+    /* D/A converter U3 */
+    g+=tag(152,194,"U3");
+    g+=icBox(150,200,282,72, true);
+    g+=lbl(291,232,"Digital to Analog Converter",12,ink,"middle",true);
+    g+=lbl(291,250,"(Part 1)",10.5,muted,"middle");
+    /* Vo back to the comparator's inverting input */
+    g+=wire([[150,236],[118,236],[118,110],[306,110]], true);
+    g+=lbl(124,228,"Vo",11,css("--accent"),"start",true);
+
+    /* the bus between counter and D/A */
+    if(S.bits<=4){
+      var n=S.bits, x0=210, dx=52;
+      for(var i=0;i<n;i++){
+        var bi=n-1-i, x=x0+i*dx, on=((S.count>>bi)&1)===1;
+        g+=wire([[x,316],[x,272]], on, on?2.2:1.4);
+        g+=lbl(x,284,"D"+bi,9.5,muted,"middle");
+        g+=lbl(x+10,302,on?"1":"0",12,on?css("--live"):muted,"start",true);
+        g+=lbl(x,314,"Q"+bi,9.5,muted,"middle");
+      }
+    } else {
+      var word="", k;
+      for(k=S.bits-1;k>=0;k--) word+=((S.count>>k)&1);
+      g+=wire([[291,316],[291,272]], S.count>0, 3.2);
+      g+='<line x1="281" y1="300" x2="301" y2="288" stroke="'+css("--faint")+'" stroke-width="1.4"/>';
+      g+=lbl(307,296,S.bits+" bits",10,muted,"start");
+      g+=lbl(275,296,word.length>12?word.slice(0,12)+"…":word,10.5,css("--live"),"end",true);
+      g+=lbl(291,310,"Q",9.5,muted,"middle");
+      g+=lbl(291,284,"D",9.5,muted,"middle");
+    }
+
+    /* counter state, spelled out */
+    g+=lbl(150,416,"counter "+S.count+(armed?" / "+(levels()-1):"")+
+           "   ·   D/A out "+fmtV(vdac())+" V"+
+           (armed?"   ·   held "+S.held.toFixed(3)+" V":""),11,muted,"start");
+    g+=lbl(150,433, armed?(en?"Vin > Vo → comparator HIGH → AND gate open → clock reaches the counter"
+                            :"Vo ≥ Vin → comparator LOW → AND gate shut → clock blocked, conversion over")
+           :"press START to sample the input and clear the counter",
+           11,armed?(en?css("--live"):css("--accent")):muted,"start",true);
+
+    $("adcblock").innerHTML=g;
+  }
+
+  /* ---- the one clock pulse ---- */
+  function clockPulse(){
+    if(!running()) return false;
+    if(!reached()){
+      S.count++; S.pulses++;
+      if(reached()) S.done=true;         // comparator has just gone high
+      if(S.count>=levels()-1) S.done=true;
+      return true;
+    }
+    S.done=true; return false;
+  }
+
+  function renderAdc(){
+    var st=step(), L=levels(), r=adcSettled(), run=running();
+    var vi=$("in-vin");
+    vi.max=S.vref; vi.step=Math.max(0.001, st/4);
+    if(S.vin>S.vref) S.vin=S.vref;
+    vi.value=S.vin; vi.disabled=run;
+    $("v-vin").textContent=S.vin.toFixed(3)+" V";
+    $("sh-note").textContent = run
+      ? "Input locked while the conversion runs — that is the sample-and-hold doing its job."
+      : "Set the voltage, then press START to sample and hold it.";
+    Array.prototype.forEach.call($("seg-clk").children,function(b){
+      b.setAttribute("aria-pressed", Number(b.dataset.hz)===S.clk); });
+
+    if($("lamps").children.length!==S.bits) buildLamps();
+    Array.prototype.forEach.call($("lamps").children,function(w){
+      var b=w.firstChild, i=Number(b.dataset.i), on=((S.count>>i)&1)===1;
+      b.dataset.on=on?"1":"0"; b.textContent=on?"1":"0";
+    });
+    $("a-count").textContent=S.count+(S.held===null?"":"  of  "+(L-1));
+
+    $("a-held").textContent = S.held===null? "—" : S.held.toFixed(3)+" V";
+    $("a-vdac").textContent = fmtV(vdac())+" V";
+
+    var hit=reached();
+    $("led-cmp").className="led"+(S.held!==null&&!hit?" on":"");
+    $("a-cmp").textContent = S.held===null? "—" : (hit? "LOW — conversion over":"HIGH");
+    $("led-eoc").className="led green"+(S.done?" on":"");
+    $("a-eoc").textContent = S.done? "conversion complete" : (run? "converting":"idle");
+
+    if(S.held===null){
+      $("a-cmpnote").textContent="Press START to sample the input and reset the counter to zero.";
+    } else if(!hit){
+      $("a-cmpnote").innerHTML="Vin "+S.held.toFixed(3)+" V &gt; Vo "+fmtV(vdac())
+        +" V &nbsp;→&nbsp; comparator output <b>HIGH</b>, so the AND gate is open and clock pulses "
+        +"reach the counter. Press CLK.";
+    } else {
+      $("a-cmpnote").innerHTML="Vo "+fmtV(vdac())+" V ≥ Vin "+S.held.toFixed(3)
+        +" V &nbsp;→&nbsp; comparator output goes <b>LOW</b>, the AND gate shuts and the clock is "
+        +"blocked. End of conversion — the count <b>"+S.count+"</b> is the output code.";
+    }
+
+    var cycles=S.pulses+1, t=cycles/S.clk;
+    var html;
+    if(S.done){
+      var err=vdac()-S.held;
+      html="Converted in <b>"+S.pulses.toLocaleString()+"</b> clock pulses (plus one to sample) = <b>"
+        +fmtTime(t)+"</b> at "+(S.clk>=1e6?(S.clk/1e6)+" MHz":(S.clk/1e3)+" kHz")
+        +".<br>Quantisation error <b>"+(err>=0?"+":"")+fmtV(err)+" V</b> — the D/A had to overshoot the input to trip the comparator.";
+    } else if(running()){
+      html="<b>"+S.pulses.toLocaleString()+"</b> pulses so far. It will settle at code <b>"+r.code+"</b> — keep clocking, or press Run.";
+    } else {
+      html="A full conversion of "+S.vin.toFixed(3)+" V needs <b>"+r.code.toLocaleString()+"</b> pulses.<br>"
+        +"Worst case at "+S.bits+" bits is <b>"+L.toLocaleString()+"</b> cycles = <b>"+fmtTime(L/S.clk)
+        +"</b>, so no more than <b>"+Math.round(S.clk/L).toLocaleString()+"</b> samples per second.";
+    }
+    if(r.over) html+='<br><span class="pill warn">over range</span> '+S.vin.toFixed(3)+" V is above full scale ("
+      +fmtV(fs())+" V) — the counter runs out of codes and the reading sticks at "+(L-1)+".";
+    $("adc-slow").innerHTML=html;
+
+    drawAdcChart(); drawAdcBlock();
+  }
+
+  /* ---- controls ---- */
+  var atimer=null;
+  function stopRun(){ if(atimer){ clearInterval(atimer); atimer=null; $("btn-run").textContent="▶ Run"; } }
+  function doStart(){
+    stopRun();
+    S.held=S.vin; S.count=0; S.done=false; S.pulses=0;
+    if(reached()) S.done=true;           // input at or below zero: converts immediately
+    renderAdc();
+  }
+  $("in-vin").addEventListener("input",function(){
+    if(running()) return;
+    S.vin=parseFloat(this.value); S.held=null; S.done=false; S.count=0; S.pulses=0; renderAdc();
+  });
+  $("btn-start").addEventListener("click",doStart);
+  $("btn-clk").addEventListener("click",function(){
+    if(S.held===null) doStart(); else { clockPulse(); renderAdc(); }
+  });
+  $("btn-reset").addEventListener("click",function(){
+    stopRun(); S.held=null; S.count=0; S.done=false; S.pulses=0; renderAdc();
+  });
+  $("btn-demo").addEventListener("click",function(){
+    stopRun(); S.bits=4; S.vref=4.0; S.vin=2.600; S.held=null; S.count=0; S.done=false; S.pulses=0;
+    S.code=Math.min(S.code, levels()-1);
+    $("in-vref").value=4.0; buildBits(); buildLamps(); render();
+  });
+  $("btn-run").addEventListener("click",function(){
+    if(atimer){ stopRun(); return; }
+    if(S.held===null || S.done) doStart();
+    if(S.done){ renderAdc(); return; }
+    this.textContent="■ Pause";
+    var L=levels(), stride=Math.max(1,Math.ceil(L/FRAMES));
+    atimer=setInterval(function(){
+      for(var k=0;k<stride;k++){ if(!clockPulse()) break; }
+      renderAdc();
+      if(S.done) stopRun();
+    }, S.speed);
+  });
+
+  buildClk(); buildLamps();
+
+
+  buildSegs(); buildBits(); render();
+})();
+</script>
+
+</body></html>
