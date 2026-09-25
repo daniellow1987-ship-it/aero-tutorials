@@ -1,0 +1,538 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which Field?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F5F7F7; --surface:#FFFFFF; --sunk:#EDF1F2;
+  --ink:#16212B; --muted:#5C6B77; --faint:#8598A4;
+  --rail:#D7E0E3; --rail-soft:#E7EDEF;
+  --accent:#0E7C96; --accent-soft:#DCEEF3;
+  --good:#1E8A5F; --good-soft:#E1F3EA;
+  --bad:#D93B2B; --bad-soft:#FBE4E1;
+  --warn:#9A6100; --warn-soft:#F7EBD6;
+  --shadow:0 1px 2px rgba(22,33,43,.06), 0 8px 24px -16px rgba(22,33,43,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+    --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+    --rail:#27343E; --rail-soft:#1F2B34;
+    --accent:#45B4D0; --accent-soft:#12303A;
+    --good:#4CC38A; --good-soft:#123423;
+    --bad:#FF7161; --bad-soft:#3A1C18;
+    --warn:#E0A33C; --warn-soft:#2E2612;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+  --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+  --rail:#27343E; --rail-soft:#1F2B34;
+  --accent:#45B4D0; --accent-soft:#12303A;
+  --good:#4CC38A; --good-soft:#123423;
+  --bad:#FF7161; --bad-soft:#3A1C18;
+  --warn:#E0A33C; --warn-soft:#2E2612;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink); margin:0;
+  font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size:15px; line-height:1.5;
+  padding-inline:16px; padding-block:22px 44px;
+}
+.wrap{max-width:1220px; margin:0 auto}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif; margin:0; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums}
+.masthead{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:6px}
+h1{font-size:clamp(23px,4.2vw,33px); font-weight:700; letter-spacing:-.015em}
+.sub{color:var(--muted); font-size:14.5px; max-width:74ch; margin:0 0 20px}
+.eyebrow{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11.5px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent)}
+
+.stages{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; margin-bottom:16px}
+.stage{background:var(--surface); border:1px solid var(--rail); border-radius:9px; padding:14px 15px}
+.stage.s1{border-top:3px solid var(--accent)}
+.stage.s2{border-top:3px solid var(--bad)}
+.stage.s3{border-top:3px solid var(--faint)}
+.stage-hd{display:flex; align-items:baseline; gap:8px; margin-bottom:3px}
+.stage-hd .n{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; color:var(--faint)}
+.stage-hd h3{font-size:15px; font-weight:700; letter-spacing:-.005em}
+.stage .when{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:9px}
+.stage ol,.stage ul{margin:0; padding-left:17px; font-size:13.5px; line-height:1.5}
+.stage li{margin-bottom:5px}
+.stage li:last-child{margin-bottom:0}
+.stage .rule{margin-top:10px; padding-top:9px; border-top:1px solid var(--rail-soft); font-size:12.5px; color:var(--muted)}
+.stage .rule b{color:var(--ink)}
+.stage pre{background:var(--sunk); border:1px solid var(--rail-soft); border-radius:6px; padding:9px 10px;
+  font-family:"IBM Plex Mono",monospace; font-size:12px; line-height:1.5; white-space:pre-wrap; margin:6px 0}
+
+.panel{background:var(--surface); border:1px solid var(--rail); border-radius:9px; padding:16px}
+.panel + .panel{margin-top:14px}
+.panel-hd{display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  margin:0 0 13px; padding-bottom:9px; border-bottom:1px solid var(--rail-soft)}
+.panel-hd h2{font-size:14px; font-weight:600; letter-spacing:.055em; text-transform:uppercase}
+.panel-hd .note{font-size:12px; color:var(--faint)}
+
+.grid{display:grid; grid-template-columns:minmax(0,320px) minmax(0,1fr); gap:14px; align-items:start}
+@media (max-width:900px){ .grid{grid-template-columns:minmax(0,1fr)} }
+
+.caselist{display:flex; flex-direction:column; gap:6px}
+.case-btn{text-align:left; cursor:pointer; padding:10px 11px; border:1px solid var(--rail); border-radius:7px;
+  background:var(--sunk); color:var(--ink); font-family:inherit}
+.case-btn .k{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--faint)}
+.case-btn .t{font-size:13px; font-weight:600; margin-top:2px}
+.case-btn[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent)}
+.case-btn.done{opacity:.68}
+.case-btn.done .t::after{content:" \2713"; color:var(--good); font-weight:700}
+.case-btn.wrong .t::after{content:" \2715"; color:var(--bad); font-weight:700}
+
+.score{margin-top:12px; padding:10px 11px; background:var(--sunk); border:1px solid var(--rail-soft); border-radius:7px;
+  font-family:"IBM Plex Mono",monospace; font-size:13px; text-align:center}
+.score b{font-size:17px; color:var(--accent)}
+
+.brief{background:var(--sunk); border:1px solid var(--rail-soft); border-radius:8px; padding:13px 14px; margin-bottom:14px; font-size:14px}
+.brief .tag{display:inline-block; font-family:"IBM Plex Sans Condensed",sans-serif; font-size:10.5px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:6px}
+.brief .stream{display:block; margin-top:8px; font-family:"IBM Plex Mono",monospace; font-size:12.5px; letter-spacing:.03em;
+  background:var(--surface); border:1px solid var(--rail-soft); border-radius:6px; padding:7px 9px; word-break:break-all}
+
+.step{margin-bottom:15px}
+.step-lab{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:7px}
+.opts{display:flex; gap:8px; flex-wrap:wrap}
+.opts button{flex:1 1 150px; padding:10px 12px; cursor:pointer; text-align:left;
+  font-family:"IBM Plex Sans",sans-serif; font-size:13.5px;
+  background:var(--surface); color:var(--ink); border:1px solid var(--rail); border-radius:7px;
+  transition:background .12s,border-color .12s}
+.opts button:hover{border-color:var(--accent)}
+.opts button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+.opts button:disabled{cursor:default}
+.opts.family button{flex:1 1 130px; font-size:12.8px}
+
+.rowbtns{display:flex; gap:8px; margin-top:4px; flex-wrap:wrap}
+.rowbtns button{padding:9px 16px; cursor:pointer; font-size:13.5px;
+  font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600; letter-spacing:.03em;
+  background:var(--surface); color:var(--ink); border:1px solid var(--rail); border-radius:7px}
+.rowbtns button:hover{border-color:var(--accent); color:var(--accent)}
+.rowbtns button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.rowbtns button.primary:hover{color:#fff; filter:brightness(1.08)}
+.rowbtns button:disabled{opacity:.4; cursor:not-allowed}
+
+.verdict{margin-top:16px; border-radius:8px; padding:13px 14px; border:1px solid var(--rail)}
+.verdict.good{background:var(--good-soft); border-color:var(--good)}
+.verdict.bad{background:var(--bad-soft); border-color:var(--bad)}
+.verdict .vh{display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; margin-bottom:6px}
+.verdict.good .vh{color:var(--good)}
+.verdict.bad .vh{color:var(--bad)}
+.verdict p{margin:0 0 7px; font-size:13.5px}
+.verdict p:last-child{margin-bottom:0}
+.verdict .consequence{font-size:13px; color:var(--muted); border-top:1px dashed var(--rail); margin-top:9px; padding-top:9px}
+
+.matrix-wrap{overflow-x:auto}
+table.matrix{border-collapse:collapse; width:100%; font-size:12.6px}
+table.matrix th, table.matrix td{border:1px solid var(--rail-soft); padding:7px 9px; text-align:left; vertical-align:top}
+table.matrix th{background:var(--sunk); font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600;
+  text-transform:uppercase; letter-spacing:.04em; font-size:11px; color:var(--muted)}
+table.matrix td.tech{font-weight:600; white-space:nowrap}
+
+.foot{margin-top:18px; font-size:12px; color:var(--faint); text-align:center}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Which Field?</h1>
+    <span class="eyebrow">Topic&nbsp;5 · Data Buses — ARINC 429 Word Decoding</span>
+  </div>
+  <p class="sub">Nine real decode/encode jobs on a 32-bit ARINC 429 word. For each one: identify the <b>field</b> responsible (Label, SDI, Data Field, SSM or Parity), then the <b>specific value it carries</b>. Every verdict traces to a stated fact or worked example.</p>
+
+  <div class="stages">
+    <section class="stage s1">
+      <div class="stage-hd"><span class="n">01</span><h3>Predict, then check</h3></div>
+      <div class="when">8 minutes · no AI</div>
+      <ol>
+        <li>Screens down. On paper, for cases <b>1, 2, 4 and 9</b> below: name the field <i>and</i> its value, with one sentence why.</li>
+        <li>Then open the tool and check all four. Mark each right or wrong.</li>
+      </ol>
+      <div class="rule">The wrong ones are the useful ones — write one line on <b>what fact you were missing</b>, not just "I was wrong".</div>
+    </section>
+
+    <section class="stage s2">
+      <div class="stage-hd"><span class="n">02</span><h3>Make AI commit</h3></div>
+      <div class="when">10 minutes · AI never gives the answer first</div>
+      <p style="margin:0 0 4px;font-size:13.5px">Paste this, exactly as written, about <b>Case 8</b> (the tricky SSM case):</p>
+      <pre>I am an aerospace electronics student.
+Here is an ARINC 429 word situation: [paste
+Case 8's brief]. Make FOUR specific,
+testable claims: which field the bits
+belong to, what the bit pattern means, and
+two supporting facts about why that meaning
+applies to THIS word. Number them 1 to 4.
+Do not hedge.</pre>
+      <div class="rule">Open Case 8 in the tool and adjudicate every claim against it. Mark each <b>true</b> or <b>false</b>, and for each false one, say what AI got wrong.</div>
+    </section>
+
+    <section class="stage s3">
+      <div class="stage-hd"><span class="n">03</span><h3>Settle it</h3></div>
+      <div class="when">9 minutes · together, then alone</div>
+      <ul>
+        <li>Scores on the board. How many of four did AI get right on Case 8?</li>
+        <li>One question for the room: <b>bits 30-31 = 11 on a BCD word and bits 30-31 = 11 on a BNR word — why is the meaning not the same?</b></li>
+        <li><b>Transfer (no tool, justify from the comparison table below):</b> your FMC must broadcast the same present-position word to 6 other systems that never need to talk back to it. Which standard, ARINC 429 or ARINC 629 — and why?</li>
+      </ul>
+      <div class="rule">Finish these two, in writing:<br>• Before today I thought the SSM field always meant the same thing, because …<br>• AI got __ of 4 right on Case 8. The one it got wrong was wrong because …</div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <div>
+      <section class="panel">
+        <div class="panel-hd"><h2>Cases</h2><span class="note">pick one</span></div>
+        <div class="caselist" id="caselist"></div>
+        <div class="score">Checked: <b id="score-n">0</b> / <span id="score-t">9</span> &nbsp;·&nbsp; Correct: <b id="score-c">0</b></div>
+      </section>
+    </div>
+
+    <div>
+      <section class="panel">
+        <div class="panel-hd"><h2 id="case-title">Select a case</h2><span class="note" id="case-eyebrow"></span></div>
+        <div class="brief" id="case-brief"></div>
+
+        <div class="step">
+          <div class="step-lab">Step 1 · Field</div>
+          <div class="opts family" id="opts-family"></div>
+        </div>
+
+        <div class="step" id="step2-wrap" style="display:none">
+          <div class="step-lab" id="step2-lab">Step 2 · Value</div>
+          <div class="opts" id="opts-sub"></div>
+        </div>
+
+        <div class="rowbtns">
+          <button type="button" class="primary" id="btn-check" disabled>Check</button>
+          <button type="button" id="btn-reset">Clear this case</button>
+        </div>
+
+        <div id="verdict"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-hd"><h2>Word format summary — for the debrief</h2><span class="note">core role, per the topic's own facts</span></div>
+    <div class="matrix-wrap">
+      <table class="matrix" id="matrix"></table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-hd"><h2>ARINC 429 vs 629 — for the transfer task</h2><span class="note">slide 51</span></div>
+    <div class="matrix-wrap">
+      <table class="matrix" id="matrix2"></table>
+    </div>
+  </section>
+
+  <p class="foot">Facts sourced from Topic 5 · Databuses. Every verdict traces to a stated field property or a worked decode/encode example.</p>
+</div>
+
+<script>
+const FAMILIES = ["Label","SDI","Data Field","SSM","Parity"];
+
+const CASES = [
+ { id:"1", tag:"Case 1", title:"737 Radio Altimeter — what is this word?",
+   brief:"An avionics technician hooks a bus analyser to the Low-Speed ARINC 429 bus from a Boeing 737 Radio Altimeter. The tool watches this 32-bit stream repeat every few milliseconds. First question: since ARINC 429 receivers have no address, where does the computer look FIRST to know this is altitude data and not speed or fuel?",
+   stream:"1 1 0 1 1 0 0 1  0 0 0 0 0 0 0 0  0 0 0 1 0 0 1 1  1 0 0 1 0 1 0 1",
+   family:"Label", axisLabel:"Which octal label?", subs:[
+     {id:"164", label:"Octal 164 — Radio Altitude", correct:true,
+      why:"The topic states directly that the Display Unit ignores all data until it sees the octal label 164 (Radio Altitude) — receivers are passive listeners with no address, so the 8-bit Label (bits 1-8) is the first and only thing they check to know what a word is.",
+      wrong:"—"},
+     {id:"201", label:"Octal 201 — DME Distance", correct:false,
+      why:"201 is the label worked out for the DME Distance example, from a completely different 32-bit word.",
+      wrong:"This case's word came off the Radio Altimeter, not the DME — octal 201 belongs to a different word entirely."},
+     {id:"230", label:"Octal 230 — True Airspeed", correct:false,
+      why:"230 is the label calculated for the True Airspeed encoding example (139 knots).",
+      wrong:"True Airspeed's label is a separate worked example — this word is the Radio Altimeter's, labelled octal 164."} ]},
+
+ { id:"2", tag:"Case 2", title:"737 Radio Altimeter — integrity check",
+   brief:"Same 32-bit stream as Case 1. The technician needs to know: how does the receiving computer detect whether a bit accidentally flipped from a 0 to a 1 due to lightning or electrical noise? Is there a 'security guard' bit?",
+   stream:"1 1 0 1 1 0 0 1  0 0 0 0 0 0 0 0  0 0 0 1 0 0 1 1  1 0 0 1 0 1 0 1",
+   family:"Parity", axisLabel:"Odd or even parity?", subs:[
+     {id:"odd", label:"Odd parity — bit 32", correct:true,
+      why:"ARINC 429 uses Odd Parity on bit 32. The transmitting computer counts all the 1s in the first 31 bits; if that count is even, it sets bit 32 to 1 to make the total odd. If a receiver ever counts an even number of 1s across all 32 bits, it knows the data is corrupted and rejects it immediately.",
+      wrong:"—"},
+     {id:"even", label:"Even parity — bit 32", correct:false,
+      why:"—",
+      wrong:"The topic states ARINC 429 specifically uses ODD parity, not even — the total count of 1s across the 32-bit word must always come out odd."} ]},
+
+ { id:"3", tag:"Case 3", title:"737 Radio Altimeter — the FAIL flag",
+   brief:"Same fault: the pilot's display suddenly flagged 'FAIL' and briefly showed an impossible negative altitude before blanking. The numbers in the Data Field might be perfectly valid — but something in this string overrides them and tells the display to paint 'FAIL' instead of a number. Radio altitude is a BNR-encoded parameter. What is the SSM bit pattern doing here, and what does it mean?",
+   stream:"1 1 0 1 1 0 0 1  0 0 0 0 0 0 0 0  0 0 0 1 0 0 1 1  1 0 0 1 0 1 0 1",
+   family:"SSM", axisLabel:"What does SSM bits 30-31 = 00 mean on THIS (BNR) word?", subs:[
+     {id:"failbnr", label:"Failure Warning (BNR SSM table)", correct:true,
+      why:"The topic states the sensor (LRU) can override a valid-looking Data Field: if the Altimeter detects an internal error it sets the SSM bits to 00 (Failure Warning). Radio altitude is a BNR parameter, and the BNR SSM table (bits 30-31) confirms 00 = Failure Warning, 11 = Normal Operation — the Display Unit reads these status bits BEFORE the altitude number, and paints red 'FAIL' when it sees 00.",
+      wrong:"—"},
+     {id:"posbcd", label:"Positive Data (BCD SSM table)", correct:false,
+      why:"—",
+      wrong:"That reading comes from the BCD SSM table (00 = Positive Data), which applies to BCD-encoded words. Radio altitude is BNR-encoded, so the BNR SSM table applies instead — and on that table, 00 means Failure Warning, not a positive value."} ]},
+
+ { id:"4", tag:"Case 4", title:"DME Distance — decode the label",
+   brief:"A different 32-bit ARINC 429 word needs decoding for a self-study exercise: 1 0001000 10001100 11010100 10000001. From the ARINC 429 table, this parameter's resolution is 0.01, units are Nm. Reversing the label field's bit order and converting gives the identification tag.",
+   stream:"1 0 0 0 1 0 0 0  1 0 0 0 1 1 0 0  1 1 0 1 0 1 0 0  1 0 0 0 0 0 0 1",
+   family:"Label", axisLabel:"Which octal label?", subs:[
+     {id:"201", label:"Octal 201 — DME Distance", correct:true,
+      why:"Working through the label field bit-by-bit (reversing the order, as the label is transmitted LSB-first) gives octal 201, which the worked example identifies as DME Distance.",
+      wrong:"—"},
+     {id:"164", label:"Octal 164 — Radio Altitude", correct:false,
+      why:"164 is the Radio Altimeter's label from Cases 1-3, a separate worked example.",
+      wrong:"This word's label works out to octal 201 (DME Distance) — 164 belongs to the Radio Altimeter word, not this one."},
+     {id:"374", label:"Octal 374 — E-W Velocity", correct:false,
+      why:"374 is the label calculated for the BNR E-W Velocity example.",
+      wrong:"374 is a different worked example's label (E-W Velocity, a BNR word) — this DME word's label is octal 201."} ]},
+
+ { id:"5", tag:"Case 5", title:"DME Distance — decode the data",
+   brief:"Same DME word as Case 4: 1 0001000 10001100 11010100 10000001. Resolution = 0.01, units = Nm, and the parameter is BCD-encoded (5 digit-groups). What value is in the Data Field?",
+   stream:"1 0 0 0 1 0 0 0  1 0 0 0 1 1 0 0  1 1 0 1 0 1 0 0  1 0 0 0 0 0 0 1",
+   family:"Data Field", axisLabel:"What value, decoded from the BCD digits?", subs:[
+     {id:"22335", label:"223.35 Nm", correct:true,
+      why:"Decoding the five BCD digit-groups in the Data Field (bits 11-29) and applying the stated 0.01 resolution gives 223.35 Nm — the worked example's answer.",
+      wrong:"—"},
+     {id:"768kt", label:"768 knots", correct:false,
+      why:"768 knots is the answer from a separate BNR worked example (NS Velocity), a different parameter and a different encoding entirely.",
+      wrong:"This word is BCD-encoded and its units are Nm (distance) per the given resolution — 768 knots belongs to an unrelated BNR velocity example."},
+     {id:"544kt", label:"544 knots", correct:false,
+      why:"544 knots is the E-W Velocity BNR worked example's answer.",
+      wrong:"That value comes from the separate E-W Velocity (BNR) example — this word's Data Field decodes to 223.35 Nm."} ]},
+
+ { id:"6", tag:"Case 6", title:"Encode True Airspeed at 139 knots",
+   brief:"A self-study exercise runs the Data Field the other direction: given a True Airspeed of 139 knots (resolution = 1, units = Knots), what bit pattern must be written into the Data Field to encode it as a BCD word?",
+   family:"Data Field", axisLabel:"Which bit pattern encodes 139 knots (BCD)?", subs:[
+     {id:"correct", label:"000 0000 0001 0011 1001", correct:true,
+      why:"Converting 139 into its BCD digit-groups (1, 3, 9) and right-justifying with leading zero-padding gives the stated Data Field pattern 000 0000 0001 0011 1001 — the worked example's answer, alongside label octal 230.",
+      wrong:"—"},
+     {id:"wrong1", label:"0 0110 0000 0000 0000 0", correct:false,
+      why:"—",
+      wrong:"This does not decode back to 139 in BCD digit-groups — the correct encoding is 000 0000 0001 0011 1001."} ]},
+
+ { id:"7", tag:"Case 7", title:"E-W Velocity — decode the BNR data",
+   brief:"E-W velocity (magnetic) is measured as 544 knots. From the ARINC 429 table, units = Knots, range = 4096, and this parameter uses 2's-complement fractional binary notation (BNR), encoded in bits 11-28 with bit 28 as MSB. What value does the resulting Data Field decode to?",
+   family:"Data Field", axisLabel:"BNR magnitude, in knots?", subs:[
+     {id:"544", label:"544 knots", correct:true,
+      why:"The worked example computes the BNR fraction as (1/8 + 1/128) x 4096 = 544 knots, matching the given E-W velocity — label octal 374.",
+      wrong:"—"},
+     {id:"768", label:"768 knots", correct:false,
+      why:"768 knots is the separate NS Velocity BNR worked example's result (1/8 x 4096 + 1/16 x 4096).",
+      wrong:"That figure comes from a different BNR worked example (NS Velocity) — this E-W Velocity word's Data Field decodes to 544 knots."} ]},
+
+ { id:"8", tag:"Case 8", title:"E-W Velocity — the SSM bits, again",
+   brief:"Same E-W Velocity BNR word as Case 7 (544 knots, label octal 374). Its SSM bits (30-31) read 1 1. A student who just finished the DME and Airspeed BCD examples assumes SSM = 11 always means the same thing on every ARINC 429 word. Is that assumption safe?",
+   family:"SSM", axisLabel:"What does SSM bits 30-31 = 11 mean on THIS (BNR) word?", subs:[
+     {id:"normbnr", label:"Normal Operation (BNR SSM table)", correct:true,
+      why:"This word is BNR-encoded, and the BNR SSM table defines bits 30-31 = 11 as Normal Operation (with bit 29 separately carrying sign/direction: plus, north, east, right, to, above). It is NOT the same table as a BCD word's SSM.",
+      wrong:"—"},
+     {id:"negbcd", label:"Negative Data (BCD SSM table)", correct:false,
+      why:"—",
+      wrong:"11 = Negative Data is the BCD SSM table's meaning, used for BCD-encoded words like the DME and True Airspeed examples. This E-W Velocity word is BNR-encoded, so its SSM designations follow the separate 6-designation BNR table instead — where 11 means Normal Operation, not negative."} ]},
+
+ { id:"9", tag:"Case 9", title:"FMC talking to 5 systems — which system is this word for?",
+   brief:"An engineer upgrading an older aircraft has the FMC sending data to 5 different receiving systems (Autopilot, Navigation Display, Engine Controller, Black Box Recorder, Maintenance Computer) over ARINC 429. Every word carries the same Label. Which field tells a multi-system installation which specific receiving system a word is meant for?",
+   family:"SDI", axisLabel:"What does the SDI field encode?", subs:[
+     {id:"correct", label:"The intended receiving system's number, in a multi-system install", correct:true,
+      why:"The topic defines the Source/Destination Identifier (SDI) as encoding the desired receiver's system number, for relaying information correctly within a multi-system installation — exactly this scenario, where several systems share the same Label but only one is the intended recipient.",
+      wrong:"—"},
+     {id:"wrong1", label:"The type of information the word contains", correct:false,
+      why:"—",
+      wrong:"That is the Label field's job (bits 1-8, an 8-bit octal ID tag) — the SDI is a separate field that instead targets which system should act on the word."},
+     {id:"wrong2", label:"A checksum for detecting transmission errors", correct:false,
+      why:"—",
+      wrong:"Error detection is the Parity Bit's job (bit 32, odd parity) — the SDI's role is routing to the correct receiving system, not integrity checking."} ]},
+];
+
+const MATRIX = [
+ {tech:"Label", core:"Bits 1-8, 8-bit ID coded in octal (000-377 = 256 labels). Tells a passive-listening receiver (no address) what type of data the word carries. Transmitted LSB-first — the 'reversed label' legacy convention."},
+ {tech:"SDI", core:"Source/Destination Identifier. Encodes the intended receiving system's number, so a multi-system installation can route the same-labelled word to the right receiver."},
+ {tech:"Data Field", core:"BCD: bits 11-29, 5 digit-groups, each Binary Coded Decimal. BNR: bits 11-28 (bit 28 = MSB), 2's-complement fractional binary notation. Carries the actual encoded value."},
+ {tech:"SSM", core:"Sign/Status Matrix — identifies direction, sign, value and status of the transmitting LRU, but the table differs by word type. BCD: bits 30-31, 4 designations (e.g. 00 = Positive Data, 11 = Negative Data). BNR: bits 29-31, 6 designations (e.g. bits 30-31: 00 = Failure Warning, 11 = Normal Operation; bit 29 = sign/direction)."},
+ {tech:"Parity", core:"Bit 32. ARINC 429 uses Odd Parity — the total count of 1s across all 32 bits must be odd, or the receiver rejects the word as corrupted."},
+];
+
+const MATRIX2 = [
+ {tech:"Bus architecture", core:"429: Simplex, uni-directional (one-way street). &nbsp;&nbsp;|&nbsp;&nbsp; 629: Half-duplex, bi-directional."},
+ {tech:"Data bit rate", core:"429: 12-14.5 Kbps (low speed) or 100 Kbps (high speed). &nbsp;&nbsp;|&nbsp;&nbsp; 629: 2 Mbps."},
+ {tech:"Terminals", core:"429: 1 transmitter + up to 20 receivers per bus. &nbsp;&nbsp;|&nbsp;&nbsp; 629: up to 120 devices."},
+ {tech:"Source/sink model", core:"429: Single Source, Multiple Sinks — forces a star topology, one dedicated transmit cable per link. &nbsp;&nbsp;|&nbsp;&nbsp; 629: Multiple Sources, Multiple Sinks — a shared 'conference call' bus."},
+];
+
+let current = null;
+let picks = {};
+
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+
+function buildCaseList(){
+  const wrap = document.getElementById('caselist');
+  wrap.innerHTML='';
+  CASES.forEach(c=>{
+    const b = el('button','case-btn');
+    b.type='button';
+    b.dataset.id=c.id;
+    b.innerHTML = `<div class="k">${c.tag}</div><div class="t">${c.title}</div>`;
+    b.addEventListener('click', ()=>selectCase(c.id));
+    wrap.appendChild(b);
+  });
+  refreshCaseList();
+}
+
+function refreshCaseList(){
+  document.querySelectorAll('.case-btn').forEach(b=>{
+    const p = picks[b.dataset.id];
+    b.setAttribute('aria-pressed', current===b.dataset.id ? 'true':'false');
+    b.classList.toggle('done', !!(p && p.checked && p.correct));
+    b.classList.toggle('wrong', !!(p && p.checked && !p.correct));
+  });
+  let n=0,c=0;
+  Object.values(picks).forEach(p=>{ if(p.checked){ n++; if(p.correct) c++; } });
+  document.getElementById('score-n').textContent=n;
+  document.getElementById('score-c').textContent=c;
+}
+
+function selectCase(id){
+  current = id;
+  const c = CASES.find(x=>x.id===id);
+  if(!picks[id]) picks[id]={family:null, sub:null, checked:false, correct:false};
+  document.getElementById('case-title').textContent = c.tag+' — '+c.title;
+  document.getElementById('case-eyebrow').textContent = 'field, then value';
+  document.getElementById('case-brief').innerHTML = `<span class="tag">Word</span><br>${c.brief}` + (c.stream ? `<span class="stream mono">${c.stream}</span>` : '');
+
+  const fWrap = document.getElementById('opts-family');
+  fWrap.innerHTML='';
+  FAMILIES.forEach(f=>{
+    const b = el('button', null, f);
+    b.type='button';
+    b.setAttribute('aria-pressed', picks[id].family===f ? 'true':'false');
+    b.disabled = picks[id].checked;
+    b.addEventListener('click', ()=>{ picks[id].family=f; picks[id].sub=null; renderCase(); });
+    fWrap.appendChild(b);
+  });
+
+  renderStep2();
+  renderVerdict();
+  refreshCaseList();
+  updateCheckBtn();
+}
+
+function renderCase(){ renderStep2(); renderVerdict(); updateCheckBtn(); refreshFamilyBtns(); }
+
+function refreshFamilyBtns(){
+  const id=current, p=picks[id];
+  document.querySelectorAll('#opts-family button').forEach(b=>{
+    b.setAttribute('aria-pressed', b.textContent===p.family ? 'true':'false');
+  });
+}
+
+function renderStep2(){
+  const id=current, c=CASES.find(x=>x.id===id), p=picks[id];
+  const step2 = document.getElementById('step2-wrap');
+  const subWrap = document.getElementById('opts-sub');
+  subWrap.innerHTML='';
+  if(!p.family){ step2.style.display='none'; return; }
+  step2.style.display='';
+  document.getElementById('step2-lab').textContent = 'Step 2 · '+ (p.family===c.family ? c.axisLabel : 'Value');
+  if(p.family !== c.family){
+    subWrap.innerHTML = `<div style="font-size:13px;color:var(--muted)">This case's word is answered by a different field — pick again in Step 1, or press Check to see why.</div>`;
+    p.sub=null;
+    return;
+  }
+  c.subs.forEach(s=>{
+    const b = el('button', null, s.label);
+    b.type='button';
+    b.setAttribute('aria-pressed', p.sub===s.id ? 'true':'false');
+    b.disabled = p.checked;
+    b.addEventListener('click', ()=>{ p.sub=s.id; refreshSubBtns(); updateCheckBtn(); });
+    subWrap.appendChild(b);
+  });
+}
+function refreshSubBtns(){
+  const p=picks[current];
+  document.querySelectorAll('#opts-sub button').forEach(b=>{
+    const s = CASES.find(x=>x.id===current).subs.find(s=>s.label===b.textContent);
+    b.setAttribute('aria-pressed', s && p.sub===s.id ? 'true':'false');
+  });
+}
+
+function updateCheckBtn(){
+  const p = picks[current];
+  const btn = document.getElementById('btn-check');
+  const ready = p && p.family && (p.family!==CASES.find(x=>x.id===current).family || p.sub);
+  btn.disabled = !ready || p.checked;
+}
+
+function renderVerdict(){
+  const v = document.getElementById('verdict');
+  const p = picks[current];
+  if(!p || !p.checked){ v.innerHTML=''; return; }
+  const c = CASES.find(x=>x.id===current);
+  const familyRight = p.family === c.family;
+  const sub = familyRight ? c.subs.find(s=>s.id===p.sub) : null;
+  const ok = familyRight && sub && sub.correct;
+  const box = el('div','verdict '+(ok?'good':'bad'));
+  if(ok){
+    box.innerHTML = `<div class="vh">✓ Correct — ${c.family}, ${sub.label}</div><p>${sub.why}</p>`;
+  } else {
+    let msg='';
+    if(!familyRight){
+      const rightSub = c.subs.find(s=>s.correct);
+      msg = `<p><b>Field:</b> the topic's answer is <b>${c.family}</b>, not ${p.family}.</p><p>${rightSub.why}</p>`;
+    } else {
+      msg = `<p><b>Value:</b> the field was right, but the topic's answer is <b>${c.subs.find(s=>s.correct).label}</b>.</p><p class="consequence">${sub ? sub.wrong : ''}</p>`;
+    }
+    box.innerHTML = `<div class="vh">✕ Not quite</div>${msg}`;
+  }
+  v.innerHTML='';
+  v.appendChild(box);
+}
+
+document.getElementById('btn-check').addEventListener('click', ()=>{
+  const c = CASES.find(x=>x.id===current), p = picks[current];
+  const familyRight = p.family === c.family;
+  const sub = familyRight ? c.subs.find(s=>s.id===p.sub) : null;
+  p.checked = true;
+  p.correct = !!(familyRight && sub && sub.correct);
+  document.querySelectorAll('#opts-family button, #opts-sub button').forEach(b=>b.disabled=true);
+  document.getElementById('btn-check').disabled=true;
+  renderVerdict();
+  refreshCaseList();
+});
+
+document.getElementById('btn-reset').addEventListener('click', ()=>{
+  if(!current) return;
+  picks[current] = {family:null, sub:null, checked:false, correct:false};
+  selectCase(current);
+});
+
+function buildMatrix(){
+  const t = document.getElementById('matrix');
+  const head = '<tr><th>Field</th><th>Core role, per this topic</th></tr>';
+  const rows = MATRIX.map(m=>`<tr><td class="tech">${m.tech}</td><td>${m.core}</td></tr>`).join('');
+  t.innerHTML = head+rows;
+  const t2 = document.getElementById('matrix2');
+  const head2 = '<tr><th>Property</th><th>ARINC 429 vs ARINC 629</th></tr>';
+  const rows2 = MATRIX2.map(m=>`<tr><td class="tech">${m.tech}</td><td>${m.core}</td></tr>`).join('');
+  t2.innerHTML = head2+rows2;
+}
+
+buildCaseList();
+buildMatrix();
+selectCase('1');
+</script>
+</body>
+</html>
+
+</body></html>
