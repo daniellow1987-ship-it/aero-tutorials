@@ -1,0 +1,1207 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Synchro Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&family=Merriweather:wght@700;900&display=swap">
+
+<style>
+:root{
+  --ground:#EEF2F7; --surface:#FFFFFF; --surface2:#E3EBF3; --raise:#F7FAFC;
+  --ink:#0C1C33; --ink2:#46596F; --ink3:#6E8299;
+  --line:#C6D4E2; --line2:#A9BDD1;
+  --accent:#0A6591; --accent-ink:#FFFFFF; --accent-soft:#D9ECF7;
+  --live:#A4560B; --live-soft:#FBEBD5;
+  --torque:#1F6F5C; --torque-soft:#DCEFE9;
+  --control:#5B3FA8; --control-soft:#E6DFF7;
+  --shadow:0 1px 2px rgba(12,28,51,.10), 0 8px 24px -12px rgba(12,28,51,.22);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0A1728; --surface:#112642; --surface2:#16324F; --raise:#14294A;
+    --ink:#FDFBF7; --ink2:#AEC0D6; --ink3:#7E93AD;
+    --line:#24446B; --line2:#2F5680;
+    --accent:#38BDF8; --accent-ink:#06243A; --accent-soft:#103351;
+    --live:#FBBF24; --live-soft:#3A2D0C;
+    --torque:#4ADE9B; --torque-soft:#0D2E25;
+    --control:#B79CFF; --control-soft:#221A3D;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0A1728; --surface:#112642; --surface2:#16324F; --raise:#14294A;
+  --ink:#FDFBF7; --ink2:#AEC0D6; --ink3:#7E93AD;
+  --line:#24446B; --line2:#2F5680;
+  --accent:#38BDF8; --accent-ink:#06243A; --accent-soft:#103351;
+  --live:#FBBF24; --live-soft:#3A2D0C;
+  --torque:#4ADE9B; --torque-soft:#0D2E25;
+  --control:#B79CFF; --control-soft:#221A3D;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px; margin:0 auto; padding-inline:16px; padding-block:28px 64px;}
+h1,h2,h3{font-family:Merriweather,Georgia,serif; text-wrap:balance; margin:0;}
+.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+
+/* ---------- header ---------- */
+header.top{
+  display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;
+  justify-content:space-between; border-bottom:2px solid var(--accent);
+  padding-bottom:18px; margin-bottom:28px;
+}
+header.top h1{font-size:clamp(26px,4.4vw,38px); font-weight:900; letter-spacing:-.01em;}
+header.top p{margin:6px 0 0; color:var(--ink2); max-width:62ch;}
+.eyebrow{
+  font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:8px;
+}
+.themebtn{
+  background:var(--surface); color:var(--ink2); border:1px solid var(--line);
+  border-radius:999px; padding:7px 14px; font-size:12px; font-weight:500;
+  font-family:inherit; cursor:pointer; white-space:nowrap;
+}
+.themebtn:hover{border-color:var(--accent); color:var(--accent)}
+
+/* ---------- step headings ---------- */
+.step{display:flex; align-items:baseline; gap:10px; margin:0 0 14px;}
+.step .n{
+  font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700;
+  color:var(--accent-ink); background:var(--accent);
+  width:22px; height:22px; border-radius:5px;
+  display:inline-flex; align-items:center; justify-content:center;
+  flex:0 0 auto; transform:translateY(1px);
+}
+.step h2{font-size:19px;}
+.step .note{color:var(--ink3); font-size:13px; margin-left:auto; text-align:right;}
+
+section{margin-bottom:34px;}
+
+/* ---------- application picker ---------- */
+.jobs{display:grid; grid-template-columns:repeat(auto-fill,minmax(232px,1fr)); gap:10px;}
+.job{
+  text-align:left; cursor:pointer; font-family:inherit; font-size:14px;
+  background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--line2);
+  border-radius:9px; padding:12px 13px; color:var(--ink); display:block;
+}
+.job:hover{border-color:var(--line2)}
+.job[aria-pressed="true"]{
+  border-color:var(--accent); border-left-color:var(--accent);
+  background:var(--accent-soft); box-shadow:var(--shadow);
+}
+.job .jt{font-weight:700; display:block; margin-bottom:3px; line-height:1.3;}
+.job .jd{color:var(--ink2); font-size:12.5px; line-height:1.4; display:block;}
+.tag{
+  font-family:"JetBrains Mono",monospace; font-size:9.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink3);
+  border:1px solid var(--line); border-radius:4px; padding:1px 5px;
+  display:inline-block; margin-bottom:7px;
+}
+
+/* ---------- bench ---------- */
+.benchwrap{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:16px; box-shadow:var(--shadow);
+}
+.benchtitle{
+  font-size:12px; color:var(--ink3); margin:0 0 12px;
+  font-family:"JetBrains Mono",monospace; letter-spacing:.05em; text-transform:uppercase;
+}
+.benchtitle b{color:var(--ink); font-weight:700;}
+.chainscroll{overflow-x:auto; padding-bottom:6px;}
+.chain{min-height:210px; display:flex; align-items:center;}
+.empty{color:var(--ink3); font-size:13.5px; font-style:italic; margin:0; padding:70px 4px;}
+
+svg.bench{display:block; max-width:none; height:auto; color:var(--ink2);}
+svg.bench text{font-family:"JetBrains Mono",ui-monospace,monospace;}
+.bench .unit{color:var(--ink2)}
+.bench .unit.torque{color:var(--torque)}
+.bench .unit.control{color:var(--control)}
+.bench .unit.support{color:var(--ink3)}
+.bench .unit.other{color:var(--accent)}
+.bench .core,.bench .stk{
+  fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round;
+}
+.bench .core{stroke-width:1.8}
+.bench .stk{stroke-width:1.4}
+.bench .mech{
+  fill:none; stroke:currentColor; stroke-width:1.5;
+  stroke-dasharray:5 4; stroke-linecap:round;
+}
+.bench .hub{fill:currentColor}
+.bench .lbl{font-size:10px; fill:var(--ink3)}
+.bench .rlbl{fill:var(--live)}
+.bench .hot{stroke:var(--live)}
+.bench .uab{font-size:13px; font-weight:700; fill:currentColor; text-anchor:middle;}
+
+.bench .wire{fill:none; stroke:var(--line2); stroke-width:1.6;}
+.bench .node{fill:var(--line2)}
+.bench .node.live{fill:var(--live)}
+.bench .wlbl{font-size:10px; fill:var(--ink3); text-anchor:middle;}
+.bench .rail{fill:none; stroke:var(--live); stroke-width:2; opacity:.5;}
+.bench .railbl{font-size:10px; fill:var(--ink3); letter-spacing:.09em;}
+.bench .railbl.on{fill:var(--live)}
+.bench .drop{fill:none; stroke-width:1.6;}
+.bench .drop.live{stroke:var(--live)}
+.bench .drop.off{stroke:var(--line2); stroke-dasharray:3 3; opacity:.65;}
+.bench .warn{font-size:9px; fill:var(--ink3); text-anchor:middle;}
+.bench .warn.bad{fill:var(--live)}
+.bench .drop.wrong{stroke-dasharray:4 3}
+.bench .drive,.bench .loop{stroke:var(--ink3)}
+.bench .arrow{fill:none; stroke:var(--ink3); stroke-width:1.6; stroke-linecap:round;}
+.bench .looplbl{font-size:10px; fill:var(--ink3); letter-spacing:.07em;}
+.bench .loadlbl{font-size:10px; fill:var(--ink3); text-anchor:middle; letter-spacing:.11em;}
+.bench .loadnm{font-size:9.5px; fill:var(--ink3); text-anchor:middle;}
+
+.bench .dial{color:var(--accent)}
+.bench .dial .tick{fill:none; stroke:currentColor; stroke-width:1.4; opacity:.45;}
+.bench .dial .needle path{fill:currentColor; stroke:none;}
+.bench .dial .needle{transform-box:fill-box; transform-origin:bottom; transform:rotate(-120deg);}
+.bench .dial.settle .needle{animation:settle 1.5s cubic-bezier(.16,.9,.3,1) forwards;}
+.bench .dial.runaway{color:var(--live)}
+.bench .dial.runaway .needle{animation:spin 1.05s linear infinite;}
+.bench .dial.judder{color:var(--live)}
+.bench .dial.judder .needle{animation:judder .17s steps(2,end) infinite;}
+
+@keyframes settle{
+  0%{transform:rotate(-120deg)} 68%{transform:rotate(54deg)}
+  86%{transform:rotate(36deg)} 100%{transform:rotate(44deg)}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes judder{0%{transform:rotate(-118deg)} 100%{transform:rotate(-107deg)}}
+@keyframes flow{to{stroke-dashoffset:-15}}
+
+.bench .flow{stroke-dasharray:8 7; animation:flow .75s linear infinite;}
+.bench .mflow{stroke-dasharray:6 6; animation:flow 1.3s linear infinite;}
+
+/* ---------- control strip ---------- */
+.strip{
+  display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+  margin-top:14px; padding-top:13px; border-top:1px solid var(--line);
+}
+.chip{
+  display:inline-flex; align-items:center; gap:4px;
+  border:1px solid var(--line); border-radius:7px;
+  padding:4px 6px; background:var(--surface2);
+}
+.chip b{font-family:"JetBrains Mono",monospace; font-size:12px; min-width:26px;}
+.chip.torque b{color:var(--torque)} .chip.control b{color:var(--control)}
+.chip.other b{color:var(--accent)}  .chip.support b{color:var(--ink3)}
+.chipsup{
+  font-family:"JetBrains Mono",monospace; font-size:9px; font-weight:700;
+  border:1px dashed var(--line2); background:transparent; color:var(--ink3);
+  border-radius:4px; padding:3px 5px; cursor:pointer; letter-spacing:.04em;
+}
+.chipsup[aria-pressed="true"]{
+  border-style:solid; border-color:var(--live);
+  background:var(--live-soft); color:var(--live);
+}
+.striphint{color:var(--ink3); font-size:12.5px; font-style:italic;}
+
+/* ---------- parts bin ---------- */
+.bin{margin-top:18px; border-top:1px solid var(--line); padding-top:16px;}
+.bingroup{margin-bottom:13px;}
+.binlabel{
+  font-family:"JetBrains Mono",monospace; font-size:9.5px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; margin-bottom:7px;
+}
+.binlabel.t{color:var(--torque)} .binlabel.c{color:var(--control)} .binlabel.s{color:var(--ink3)}
+.parts{display:flex; flex-wrap:wrap; gap:6px;}
+.part{
+  font-family:inherit; font-size:12.5px; cursor:pointer; color:var(--ink);
+  background:var(--surface2); border:1px solid var(--line); border-radius:7px;
+  padding:5px 10px 5px 6px; display:inline-flex; align-items:center; gap:7px;
+}
+.part:hover{border-color:var(--accent); color:var(--accent)}
+.part b{font-family:"JetBrains Mono",monospace; font-size:12.5px;}
+.part span{color:var(--ink2); font-size:11.5px;}
+.part:hover span{color:inherit}
+
+/* ---------- artwork ---------- */
+.symwrap{
+  display:block; background:var(--surface2); border-radius:7px;
+  padding:5px 4px; margin-bottom:8px; color:var(--ink2);
+}
+.slot.torque .symwrap{color:var(--torque)}
+.slot.control .symwrap{color:var(--control)}
+.slot.support .symwrap{color:var(--ink3)}
+.slot.other   .symwrap{color:var(--accent)}
+.sym{display:block; width:100%; height:auto; max-height:76px;}
+.sym .core,.sym .stk{fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round;}
+.sym .core{stroke-width:1.7}
+.sym .stk{stroke-width:1.4}
+.sym .mech{fill:none; stroke:currentColor; stroke-width:1.4; stroke-dasharray:4 3; stroke-linecap:round;}
+.sym .hub{fill:currentColor}
+.sym .lbl{
+  font-family:"JetBrains Mono",ui-monospace,monospace; font-size:10px;
+  fill:var(--ink3); letter-spacing:.02em;
+}
+.sym .hot{stroke:var(--live)}
+.sym.live .rlbl{fill:var(--live)}
+
+.iso{width:34px; height:26px; flex:0 0 auto; color:var(--ink3);}
+.part.torque .iso{color:var(--torque)}
+.part.control .iso{color:var(--control)}
+.part.support .iso{color:var(--ink3)}
+.part.other .iso{color:var(--accent)}
+.part:hover .iso{color:inherit}
+.iso .bd{fill:currentColor; fill-opacity:.15; stroke:currentColor; stroke-width:1.2;}
+.iso .cap{fill:currentColor; fill-opacity:.32; stroke:currentColor; stroke-width:1.2;}
+.iso .edge,.iso .sh,.iso .pin,.iso .mech{
+  fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round;
+}
+.iso .sh{stroke-width:2.2}
+.iso .mech{stroke-dasharray:3 3}
+
+td.symcell{width:104px; color:var(--ink3); padding-right:0;}
+td.symcell.torque{color:var(--torque)} td.symcell.control{color:var(--control)}
+td.symcell.other{color:var(--accent)}
+td.symcell .sym{max-height:62px;}
+
+/* ---------- actions ---------- */
+.actions{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:16px;}
+.run{
+  font-family:inherit; font-size:14.5px; font-weight:700; cursor:pointer;
+  background:var(--accent); color:var(--accent-ink); border:1px solid var(--accent);
+  border-radius:8px; padding:11px 20px;
+}
+.run:hover{filter:brightness(1.08)}
+.ghost{
+  font-family:inherit; font-size:13px; cursor:pointer; color:var(--ink2);
+  background:transparent; border:1px solid var(--line); border-radius:8px; padding:10px 15px;
+}
+.ghost:hover{border-color:var(--accent); color:var(--accent)}
+.counter{margin-left:auto; font-family:"JetBrains Mono",monospace; font-size:11.5px; color:var(--ink3);}
+
+/* ---------- readout ---------- */
+.readout{
+  margin-top:18px; background:var(--surface); border:1px solid var(--line);
+  border-left:3px solid var(--accent); border-radius:10px; padding:16px 18px;
+}
+.rohead{
+  display:flex; flex-wrap:wrap; gap:8px; align-items:baseline;
+  border-bottom:1px solid var(--line); padding-bottom:9px; margin-bottom:12px;
+}
+.rohead .rt{font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--accent);}
+.rohead .rs{font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--ink3); margin-left:auto;}
+.obs{display:flex; gap:12px; padding:9px 0; border-bottom:1px dotted var(--line);}
+.obs:last-child{border-bottom:none; padding-bottom:0;}
+.obs .oi{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  color:var(--ink3); flex:0 0 46px; padding-top:3px; letter-spacing:.04em;
+}
+.obs .ot{flex:1; font-size:14px; line-height:1.55;}
+.rofoot{
+  margin-top:13px; padding-top:11px; border-top:1px solid var(--line);
+  font-size:12.5px; color:var(--ink3); line-height:1.5;
+}
+
+/* ---------- reference ---------- */
+details.ref{
+  margin-top:30px; background:var(--surface); border:1px solid var(--line); border-radius:10px;
+}
+details.ref summary{
+  cursor:pointer; padding:13px 16px; font-weight:700; font-size:14px;
+  list-style:none; display:flex; align-items:center; gap:9px;
+}
+details.ref summary::-webkit-details-marker{display:none}
+details.ref summary::before{content:"+"; font-family:"JetBrains Mono",monospace; color:var(--accent); font-weight:700;}
+details.ref[open] summary::before{content:"\2212";}
+.tablescroll{overflow-x:auto; padding:0 16px 16px;}
+details.ans{margin-top:14px;}
+details.ans .ansbody{padding:0 16px;}
+details.ans .ansrow{
+  display:grid; grid-template-columns:170px 1fr; gap:14px;
+  padding:9px 0; border-top:1px dotted var(--line);
+}
+details.ans .ansrow:first-child{border-top:none;}
+details.ans .al{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); padding-top:3px;
+}
+details.ans .av{font-size:14px; line-height:1.55;}
+details.ans .av.mono{font-family:"JetBrains Mono",monospace; font-size:13px; color:var(--accent);}
+details.ans .locked{margin:0; color:var(--ink3); font-size:13.5px; line-height:1.55;}
+details.ans .anshint{
+  margin:12px 0 0; padding:12px 16px 16px; font-size:12px; color:var(--ink3);
+  border-top:1px solid var(--line);
+}
+@media (max-width:620px){ details.ans .ansrow{grid-template-columns:1fr; gap:4px;} }
+table{border-collapse:collapse; width:100%; min-width:740px; font-size:13px;}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+th{
+  font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink3); font-weight:700;
+  border-bottom:1px solid var(--line2);
+}
+td.ab{font-family:"JetBrains Mono",monospace; font-weight:700; white-space:nowrap;}
+footer.foot{margin-top:34px; color:var(--ink3); font-size:12.5px; line-height:1.6;}
+
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important; animation:none!important}
+  .bench .dial.settle .needle{transform:rotate(44deg)}
+}
+@media (max-width:520px){
+  .chain{min-height:180px}
+  .step .note{margin-left:0; text-align:left; width:100%;}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <div class="eyebrow">Temasek Polytechnic &middot; Aerospace Electronics &middot; Topic 2</div>
+    <h1>Synchro Bench</h1>
+    <p>Pick a job, build the team, run a functional check. The bench reports only what it
+       observes &mdash; it will not tell you whether your build is right. Working that out is the exercise.</p>
+  </div>
+  <button class="themebtn" id="themeToggle" type="button">Switch theme</button>
+</header>
+
+<section>
+  <div class="step"><span class="n">1</span><h2>Select the job</h2>
+    <span class="note">Eight aircraft applications. One has no synchro solution at all.</span>
+  </div>
+  <div class="jobs" id="jobs"></div>
+</section>
+
+<section>
+  <div class="step"><span class="n">2</span><h2>Build the team</h2>
+    <span class="note">Add units left to right. Energise a rotor by switching its supply on.</span>
+  </div>
+  <div class="benchwrap">
+    <p class="benchtitle">Bench &mdash; <b id="benchJob">&nbsp;</b></p>
+    <div class="chainscroll">
+      <div class="chain" id="chain"></div>
+    </div>
+    <div class="strip" id="strip"></div>
+
+    <div class="bin">
+      <div class="bingroup">
+        <div class="binlabel t">Torque family</div>
+        <div class="parts" id="binTorque"></div>
+      </div>
+      <div class="bingroup">
+        <div class="binlabel c">Control family</div>
+        <div class="parts" id="binControl"></div>
+      </div>
+      <div class="bingroup">
+        <div class="binlabel s">Other units and support</div>
+        <div class="parts" id="binOther"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="run" id="runBtn" type="button">Run functional check</button>
+      <button class="ghost" id="clearBtn" type="button">Clear bench</button>
+      <span class="counter" id="counter">CHECKS RUN: 0</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="step"><span class="n">3</span><h2>Read the result</h2>
+    <span class="note">Write each observation on your bench sheet, and why it happens.</span>
+  </div>
+  <div class="readout" id="readout"></div>
+
+  <details class="ref ans" id="answerBox">
+    <summary>Model answer</summary>
+    <div class="ansbody"></div>
+    <p class="anshint">For revision after the lesson. During the lesson the bench gives symptoms only.</p>
+  </details>
+</section>
+
+<details class="ref">
+  <summary>Component data &mdash; what each unit takes in and gives out</summary>
+  <div class="tablescroll">
+    <table>
+      <thead><tr><th>Symbol</th><th>Unit</th><th>Rotor</th><th>Stator</th><th>Supply to its rotor</th></tr></thead>
+      <tbody id="refBody"></tbody>
+    </table>
+  </div>
+</details>
+
+<footer class="foot">
+  Built for the &ldquo;Brain before AI&rdquo; activity in Topic&nbsp;2 Servomechanisms. Use the printed card
+  deck during the lesson; this bench is for revision and self-testing afterwards. Excitation throughout
+  is 26&nbsp;V 400&nbsp;Hz.
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ data */
+var C = {
+  TX:{ab:"TX", nm:"Torque transmitter", fam:"torque",
+      rotor:"Mechanical input, energised", stator:"Electrical output to TR, TDX or TDR",
+      supply:"required", sym:"synchro", shaft:"l", iso:{pins:3, shaftL:true}},
+  TR:{ab:"TR", nm:"Torque receiver", fam:"torque",
+      rotor:"Mechanical output, energised, inertia damper", stator:"Electrical input from TX or TDX",
+      supply:"required", drives:"light", sym:"synchro", shaft:"r", iso:{pins:3, shaftR:true}},
+  TDX:{ab:"TDX", nm:"Torque differential transmitter", fam:"torque",
+      rotor:"Mechanical input, electrical output", stator:"Electrical input from TX or TDX",
+      supply:"never", sym:"diff", shaft:"l", iso:{pins:6, shaftL:true}},
+  TDR:{ab:"TDR", nm:"Torque differential receiver", fam:"torque",
+      rotor:"Electrical input, mechanical output", stator:"Electrical input from TX or TDX",
+      supply:"never", drives:"light", sym:"diff", shaft:"r", iso:{pins:6, shaftR:true}},
+  CX:{ab:"CX", nm:"Control transmitter", fam:"control",
+      rotor:"Mechanical input, energised", stator:"Electrical output to CT or CDX",
+      supply:"required", sym:"synchro", shaft:"l", iso:{pins:3, shaftL:true}},
+  CDX:{ab:"CDX", nm:"Control differential transmitter", fam:"control",
+      rotor:"Mechanical input, electrical output", stator:"Electrical input from CX or CDX",
+      supply:"never", sym:"diff", shaft:"l", iso:{pins:6, shaftL:true}},
+  CT:{ab:"CT", nm:"Control transformer", fam:"control",
+      rotor:"Mechanical input from feedback, error-signal output", stator:"Electrical input from CX or CDX",
+      supply:"never", sym:"synchro", shaft:"b", iso:{pins:5, shaftL:true}},
+  RES:{ab:"RES", nm:"Resolver", fam:"other",
+      rotor:"Two windings at right angles", stator:"Two windings at right angles",
+      supply:"required", sym:"res", shaft:"b", iso:{pins:4, shaftL:true}},
+  AMP:{ab:"AMP", nm:"Servo amplifier", fam:"support",
+      rotor:"—", stator:"Electrical in, amplified electrical out", supply:"n/a", sym:"amp", iso:{shape:'amp'}},
+  MOT:{ab:"MOT", nm:"Servo motor", fam:"support",
+      rotor:"Electrical in, mechanical out — drives heavy loads", stator:"—", supply:"n/a", sym:"mot", shaft:"r", iso:{pins:2, shaftR:true, fins:true}},
+  FBK:{ab:"FBK", nm:"Feedback link", fam:"support",
+      rotor:"Mechanical coupling from the load back to the CT rotor", stator:"—", supply:"n/a", sym:"fbk", iso:{shape:'link'}},
+  DMP:{ab:"DMP", nm:"Inertia damper", fam:"support",
+      rotor:"Fitted to a receiver rotor to stop it spinning or oscillating", stator:"—", supply:"n/a", sym:"dmp", shaft:"l", iso:{shaftL:true, disc:true}},
+  PRB:{ab:"PRB", nm:"Capacitance tank probe", fam:"other",
+      rotor:"No rotating parts — variable capacitor in a bridge", stator:"—", supply:"n/a", sym:"prb", iso:{shape:'tank'}}
+};
+
+var JOBS = [
+  {id:"FLAP", tag:"Light load", t:"Cockpit flap position indicator",
+   d:"A panel pointer must follow the flap drive shaft, degree for degree.", load:"light", ans:{"team": "TX → TR", "supply": "Both rotors — the TX rotor and the TR rotor.", "why": "The load is a pointer, so the torque the receiver develops for itself is enough and no amplifier is needed. Turning the TX rotor sets up a stator field; the TR stator reproduces it and its rotor takes up the matching position. Fit the inertia damper to the receiver rotor.", "watch": "A CX will transmit, but its high-impedance windings load down against the TR — weak and several degrees out. With no damper the rotor spins on switch-on."}, sol:{units:['TX','TR'], supply:['TX','TR'], opt:['DMP']}},
+  {id:"RUDD", tag:"Light load", t:"Rudder position indication",
+   d:"A cockpit pointer repeats rudder position for the crew.", load:"light", ans:{"team": "TX → TR", "supply": "Both rotors — the TX rotor and the TR rotor.", "why": "Same team as any light pointer indication: a torque pair repeats rudder shaft position directly, and the receiver shaft turns through exactly the same angle as the transmitter shaft.", "watch": "Reach for a control team here and you have added an amplifier and a motor to drive a pointer."}, sol:{units:['TX','TR'], supply:['TX','TR'], opt:['DMP']}},
+  {id:"RADAR", tag:"Heavy load", t:"Weather radar antenna positioner",
+   d:"A heavy antenna must be driven to a commanded angle and held there.", load:"heavy", ans:{"team": "CX → CT → AMP → MOT, plus FBK from the output shaft back to the CT rotor", "supply": "The CX rotor only. Never the CT rotor.", "why": "An antenna is far beyond the torque any receiver develops. The CT rotor gives an error voltage proportional to the sine of the angle between its rotor and the stator field; the amplifier and motor turn that into real torque. The feedback link drives the error towards null, and at null the motor stops and holds position.", "watch": "Leave the feedback link out and the motor drives to the stop. Energise the CT rotor and the null disappears altogether."}, sol:{units:['CX','CT','AMP','MOT','FBK'], supply:['CX'], opt:[]}},
+  {id:"TURRET", tag:"Heavy load", t:"Turret / launcher drive",
+   d:"A heavy mount must be driven remotely to a commanded bearing.", load:"heavy", ans:{"team": "CX → CT → AMP → MOT, plus FBK from the mount back to the CT rotor", "supply": "The CX rotor only. Never the CT rotor.", "why": "A heavy mount driven to a commanded bearing is the same remote positioning problem as the antenna — a control synchro system with an amplifier, a motor and a closed feedback loop.", "watch": "The giveaway is the load, not the unit: anything a receiver cannot physically turn needs the control family."}, sol:{units:['CX','CT','AMP','MOT','FBK'], supply:['CX'], opt:[]}},
+  {id:"DATUM", tag:"Differential — one shaft", t:"Flap angle against a selected datum",
+   d:"The display must show flap angle relative to a datum set on a local knob.", load:"light", diff:"TDX", ans:{"team": "TX → TDX → TR", "supply": "The TX rotor and the TR rotor. Never the TDX.", "why": "The differential transmitter takes the transmitted flap angle electrically at its stator and the datum angle mechanically at its rotor, so its rotor output represents the difference. The indicator settles at A minus B. Cross S1–S3 and R1–R3 at the differential and it reads A plus B.", "watch": "A TDR will not do this job — it expects a second electrical input at its rotor, not a datum knob. The TDX is excited through the units either side of it and is never connected to the supply."}, sol:{units:['TX','TDX','TR'], supply:['TX','TR'], opt:['DMP']}},
+  {id:"SUM", tag:"Differential — two signals", t:"Summing display, two transmitters",
+   d:"Two transmitted angles must be combined into one shaft reading.", load:"light", diff:"TDR", ans:{"team": "TX + TX → TDR", "supply": "Both transmitter rotors. Never the TDR.", "why": "The differential receiver takes an electrical input at its stator from one transmitter and another at its rotor from the second, and its shaft settles at the difference between the two transmitted angles. Cross the leads from one transmitter and it settles at the sum.", "watch": "A TDX expects a shaft at its rotor, so the second transmitter's output would have nowhere to go. One transmitter alone leaves a rotor winding unconnected."}, sol:{units:['TX','TX','TDR'], supply:['TX','TX'], opt:['DMP']}},
+  {id:"THROT", tag:"Resolution", t:"Throttle lever position to FADEC",
+   d:"Lever angle must become sine and cosine voltages for digital computation.", load:"none", ans:{"team": "Resolver alone", "supply": "One stator winding excited — S1, S3.", "why": "The two rotor windings sit at right angles, so they deliver EP1·cosθ and EP1·sinθ — the Cartesian pair. That is what the analogue-to-digital converter passes to the FADEC, and it is what a single repeated shaft position could never provide.", "watch": "A synchro team repeats lever position faithfully and is still useless here: no sine and cosine pair means nothing for the converter to work on."}, sol:{units:['RES'], supply:['RES'], opt:[]}},
+  {id:"FUEL", tag:"No rotating shaft", t:"Fuel quantity indication",
+   d:"Tank contents must be measured and shown on the flight deck.", load:"none", ans:{"team": "No synchro team fits — capacitance tank probe in a bridge circuit", "supply": "Bridge excitation. There is no rotor to energise.", "why": "A tank has no rotating shaft, so there is nothing for a transmitter rotor to follow. Fuel has more than twice the dielectric strength of air, so as the tank fills the probe capacitance rises, the bridge unbalances and current flows to the indicator.", "watch": "This card is here to test whether you match by habit. Check that the job really has a shaft angle to transmit before you reach for a synchro."}, sol:{units:['PRB'], supply:[], opt:[]}}
+];
+
+var state = {job:"FLAP", chain:[{id:"TX", on:true}], checks:0, tested:[], run:null};
+
+/* ------------------------------------------------------------------ rules */
+function has(ids){ return state.chain.some(function(s){ return ids.indexOf(s.id) >= 0; }); }
+function find(id){ return state.chain.filter(function(s){ return s.id === id; }); }
+function energised(id){ return find(id).some(function(s){ return s.on; }); }
+function present(id){ return find(id).length > 0; }
+
+function evaluate(){
+  var job = JOBS.filter(function(j){ return j.id === state.job; })[0];
+  var ch = state.chain, out = [];
+  var push = function(t){ if(out.indexOf(t) < 0) out.push(t); };
+
+  if(!ch.length){ return ["The bench is empty. There is nothing to check."]; }
+
+  var synchros = ["TX","TR","TDX","TDR","CX","CDX","CT"];
+  var hasSynchro = has(synchros);
+  var hasTorque = has(["TX","TR","TDX","TDR"]);
+  var hasControl = has(["CX","CDX","CT"]);
+
+  /* --- the two jobs that are not synchro jobs at all --- */
+  if(job.id === "FUEL"){
+    if(hasSynchro){
+      push("The tank has no rotating shaft. The transmitter rotor has nothing to turn, and the indicator sits where it was left.");
+    }
+    if(present("PRB")){
+      push("With the tank empty the bridge is balanced and no current flows. As fuel rises the tank-unit capacitance increases, the bridge unbalances, and the indication follows the contents.");
+    } else if(!hasSynchro){
+      push("Nothing on the bench can sense the contents of a tank.");
+    }
+    return out;
+  }
+  if(job.id === "THROT"){
+    if(present("RES")){
+      if(energised("RES")){
+        push("One stator winding is excited. The two rotor windings deliver voltages varying as the cosine and the sine of lever angle — the pair a digital converter needs.");
+      } else {
+        push("No excitation reaches the stator windings. Both rotor outputs stay at zero whatever the lever does.");
+      }
+    }
+    if(hasSynchro){
+      push("A shaft position is repeated faithfully, but no sine and cosine pair is produced, so there is nothing for the converter to work on.");
+    }
+    if(!present("RES") && !hasSynchro){
+      push("Nothing on the bench converts lever angle into an electrical quantity.");
+    }
+    return out;
+  }
+
+  /* --- general electrical checks --- */
+  var anyOn = ch.some(function(s){ return s.on; });
+  if(!anyOn){
+    push("Nothing moves and no voltage appears anywhere in the chain.");
+    return out;
+  }
+  if(["TX","CX"].indexOf(ch[0].id) < 0){
+    push("Nothing at the head of the chain is converting shaft movement into a signal. There is no input to the system.");
+  }
+  if(hasTorque && hasControl){
+    push("A signal gets through, but the high-impedance and low-impedance windings are badly mismatched. The transmitter is loaded down, the indication is weak and it settles several degrees out.");
+  }
+  if(energised("CT")){
+    push("The transformer rotor output no longer represents the angular difference between the two shafts. The null has disappeared and the error signal never falls to zero.");
+  }
+  ["TDX","TDR","CDX"].forEach(function(u){
+    if(energised(u)){
+      push("The " + u + " output is corrupted. This unit is excited through the units either side of it and was never meant to be connected to the supply.");
+    }
+  });
+  if(present("TX") && !energised("TX")){
+    push("The transmitter stator produces no resultant field, so nothing at all is transmitted down the line.");
+  }
+  if(present("CX") && !energised("CX")){
+    push("No resultant field reaches the transformer stator. The error signal stays at zero whatever the command shaft does.");
+  }
+  if(present("TR") && !energised("TR")){
+    push("The receiver develops no torque of its own. The pointer stays wherever it was last left.");
+  }
+
+  /* --- differential selection --- */
+  if(job.diff === "TDX" && present("TDR")){
+    push("The datum knob has nothing to turn. This unit expects a second electrical input at its rotor, not a shaft.");
+  }
+  if(job.diff === "TDR" && present("TDX")){
+    push("The second transmitter's output has nowhere to go. This unit expects a shaft at its rotor, not a second signal.");
+  }
+  if(job.diff === "TDX" && present("TDX") && present("TX") && present("TR") &&
+     !hasControl && !energised("TDX") && energised("TX") && energised("TR")){
+    push("The indicator settles at the difference between the transmitted angle and the datum shaft angle. Cross S1–S3 and R1–R3 at the differential and it reads the sum instead.");
+  }
+  if(job.diff === "TDR" && present("TDR") && find("TX").length >= 2 &&
+     !hasControl && !energised("TDR")){
+    push("The receiver shaft settles at the difference between the two transmitted angles. Cross the leads from one transmitter and it settles at the sum.");
+  }
+  if(job.diff === "TDR" && present("TDR") && find("TX").length < 2){
+    push("Only one angle is arriving. The differential receiver has a second input winding with nothing connected to it.");
+  }
+
+  /* --- control chain completeness --- */
+  if(present("CT")){
+    if(!present("AMP")){
+      push("A voltage appears at the transformer rotor and varies as the command shaft is moved — but nothing moves.");
+    } else if(!present("MOT")){
+      push("An amplified signal is available at the output of the amplifier, with nothing connected to drive.");
+    } else if(!present("FBK")){
+      push("The motor runs continuously and drives the load hard against its stop. The error signal never falls to a null.");
+    } else if(!hasTorque && present("CX") && !energised("CT")){
+      if(job.load === "heavy"){
+        push("The load drives round to the commanded angle and stops cleanly. The error voltage falls to a null and the motor holds it there against the airflow.");
+      } else {
+        push("The pointer is driven to the commanded angle accurately — though an amplifier and a servo motor are a great deal more than a pointer needs.");
+      }
+    }
+  } else if(present("CX") && !present("CT")){
+    push("The control transmitter is producing a stator field with nothing to receive it.");
+  }
+
+  /* --- torque chain outcomes --- */
+  var torqueOutput = present("TR") || present("TDR");
+  if(torqueOutput && !hasControl){
+    if(job.load === "heavy"){
+      push("The receiver judders and stalls as soon as it takes the load, runs hot, and lags the transmitter badly. It cannot hold position against the airflow.");
+    } else if(!job.diff && present("TX") && present("TR") && !present("TDX") && !present("TDR")){
+      push("The pointer follows the transmitter shaft degree for degree.");
+    }
+    if(!present("DMP")){
+      push("On switch-on the receiver rotor spins rapidly before it settles, and it overshoots on every large movement.");
+    }
+  }
+  if(job.load === "heavy" && !present("MOT") && !torqueOutput && !present("CT")){
+    push("Nothing in the chain is capable of turning a load of this size.");
+  }
+  if(!out.length){
+    push("No meaningful output. The chain does not carry a signal from the input shaft through to the load.");
+  }
+  return out;
+}
+
+
+/* ---------------------------------------------------------------- artwork */
+var U = 140, UH = 104;          /* unit box, local coords */
+var PITCH = 236, ROWH = 150;    /* spacing between units / rows */
+var MGN = 30, TOPY = 14, LOADW = 156;
+
+/* Which edge each unit's windings and shaft come out of. */
+var PORTS = {
+  TX: {st:{side:'r', at:[30,48,66]}, ro:{side:'d', at:[62,78]},   sh:'l'},
+  TR: {st:{side:'l', at:[30,48,66]}, ro:{side:'d', at:[62,78]},   sh:'r'},
+  CX: {st:{side:'r', at:[30,48,66]}, ro:{side:'d', at:[62,78]},   sh:'l'},
+  CT: {st:{side:'l', at:[30,48,66]}, ro:{side:'r', at:[40,56]},   sh:'d'},
+  TDX:{st:{side:'l', at:[30,48,66]}, ro:{side:'r', at:[30,48,66]},sh:'d'},
+  CDX:{st:{side:'l', at:[30,48,66]}, ro:{side:'r', at:[30,48,66]},sh:'d'},
+  TDR:{st:{side:'l', at:[24,38,52]}, ro:{side:'l', at:[66,80,94]},sh:'r'},
+  RES:{st:{side:'l', at:[36,60]},    ro:{side:'r', at:[36,60]},   sh:'d'},
+  AMP:{st:{side:'l', at:[40,56]},    ro:{side:'r', at:[40,56]},   sh:null},
+  MOT:{st:{side:'l', at:[40,56]},    ro:null,                     sh:'r'},
+  PRB:{st:null,                      ro:{side:'r', at:[42,54]},   sh:null},
+  DMP:{st:null, ro:null, sh:'l'},
+  FBK:{st:null, ro:null, sh:null}
+};
+
+function portXY(id, kind, i){
+  var g = PORTS[id] && PORTS[id][kind === 'stator' ? 'st' : 'ro'];
+  if(!g) return null;
+  var v = g.at[Math.min(i, g.at.length - 1)];
+  if(g.side === 'd') return {x:v, y:UH};
+  return {x: g.side === 'r' ? U - 6 : 6, y:v};
+}
+function portCount(id, kind){
+  var g = PORTS[id] && PORTS[id][kind === 'stator' ? 'st' : 'ro'];
+  return g ? g.at.length : 0;
+}
+
+/* leads fanning out of the winding circle to each port */
+function fan(cx, cy, r, pts, cls){
+  var d = '';
+  pts.forEach(function(pt){
+    var vx = pt.x - cx, vy = pt.y - cy, L = Math.sqrt(vx * vx + vy * vy) || 1;
+    d += 'M' + (cx + vx / L * r).toFixed(1) + ' ' + (cy + vy / L * r).toFixed(1) +
+         'L' + pt.x + ' ' + pt.y;
+  });
+  return '<path class="' + cls + '" d="' + d + '"/>';
+}
+
+/* the unit drawn in its own 140 x 104 local frame */
+function unitArt(id, live){
+  var P = PORTS[id], cx = 70, cy = 48, r = 19, g = '';
+  function lbl(t, x, y, cls){
+    return '<text class="lbl ' + (cls || '') + '" x="' + x + '" y="' + y + '">' + t + '</text>';
+  }
+  function mech(d, hx, hy){
+    return '<path class="mech" d="' + d + '"/><circle class="hub" cx="' + hx +
+           '" cy="' + hy + '" r="3"/>';
+  }
+
+  if(id === 'AMP'){
+    return '<path class="core" d="M52 24L96 48 52 72Z"/>' +
+           '<path class="stk" d="M6 40h46M6 56h46M96 48h38"/>' + lbl('AMP', 60, 52);
+  }
+  if(id === 'MOT'){
+    return '<circle class="core" cx="64" cy="48" r="19"/>' + lbl('M', 59, 53) +
+           '<path class="stk" d="M6 40h39M6 56h39"/>' + mech('M83 48h40', 126, 48);
+  }
+  if(id === 'FBK'){
+    return mech('M14 48h112', 14, 48) + '<circle class="hub" cx="126" cy="48" r="3"/>' +
+           '<path class="stk" d="M64 42l-8 6 8 6"/>' + lbl('mechanical', 44, 32);
+  }
+  if(id === 'DMP'){
+    return '<circle class="core" cx="76" cy="48" r="16"/>' +
+           '<path class="stk" d="M64 40l24 16M64 56l24-16M76 32v32"/>' +
+           mech('M16 48h44', 14, 48);
+  }
+  if(id === 'PRB'){
+    return '<path class="core" d="M18 22h62v54H18z"/>' +
+           '<path class="stk" d="M40 28v42M58 28v42M18 60h62"/>' +
+           '<path class="stk" d="M80 42h54M80 54h54"/>' + lbl('fuel level', 22, 90);
+  }
+
+  g += '<circle class="core" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
+  if(id === 'RES'){
+    g += '<path class="stk" d="M51 48h38M70 29v38"/>';
+  } else {
+    g += '<path class="stk" d="M70 48V29M70 48L53.5 57.5M70 48L86.5 57.5"/>';
+  }
+  if(P.ro && P.ro.side !== 'd' && id !== 'RES'){
+    g += '<circle class="core rot" cx="' + cx + '" cy="' + cy + '" r="9"/>';
+  }
+  if(P.ro && P.ro.side === 'd'){
+    g += '<path class="stk rot' + (live ? ' hot' : '') +
+         '" d="M64 52v-6a6 6 0 0 1 12 0v6"/>';
+  }
+
+  var stPts = [], roPts = [], i;
+  for(i = 0; i < portCount(id, 'stator'); i++) stPts.push(portXY(id, 'stator', i));
+  for(i = 0; i < portCount(id, 'rotor');  i++) roPts.push(portXY(id, 'rotor',  i));
+  if(stPts.length) g += fan(cx, cy, r, stPts, 'stk');
+  if(roPts.length) g += fan(cx, cy, r, roPts,
+        'stk rot' + (live && P.ro.side === 'd' ? ' hot' : ''));
+
+  var sn = ['S1', 'S2', 'S3'], rn = ['R1', 'R2', 'R3'];
+  stPts.forEach(function(q, k){
+    g += lbl(sn[k], P.st.side === 'r' ? q.x - 21 : q.x + 3, q.y - 4);
+  });
+  roPts.forEach(function(q, k){
+    var cls = live && P.ro.side === 'd' ? 'rlbl' : '';
+    if(P.ro.side === 'd') g += lbl(rn[k], q.x - 9, q.y - 4, cls);
+    else g += lbl(rn[k], P.ro.side === 'r' ? q.x - 21 : q.x + 3, q.y - 4, cls);
+  });
+
+  if(P.sh === 'l') g += mech('M20 48h31', 17, 48);
+  if(P.sh === 'r') g += mech('M89 48h31', 123, 48);
+  if(P.sh === 'd') g += mech('M70 67v30', 70, 100);
+  return g;
+}
+
+/* isometric unit for the parts bin */
+function iso(o){
+  o = o || {};
+  var g = '';
+  if(o.shaftL) g += '<path class="sh" d="M3 22h13"/>';
+  if(o.shaftR) g += '<path class="sh" d="M40 22h13"/>';
+  if(o.shape === 'amp'){
+    g += '<path class="bd" d="M17 7l23 15-23 15z"/><path class="sh" d="M4 22h13M40 22h12"/>';
+    return '<svg class="iso" viewBox="0 0 56 44" aria-hidden="true">' + g + '</svg>';
+  }
+  if(o.shape === 'link'){
+    g  = '<path class="mech" d="M9 22h38"/>';
+    g += '<circle class="cap" cx="9" cy="22" r="5"/><circle class="cap" cx="47" cy="22" r="5"/>';
+    return '<svg class="iso" viewBox="0 0 56 44" aria-hidden="true">' + g + '</svg>';
+  }
+  if(o.shape === 'tank'){
+    g  = '<path class="bd" d="M13 7h30v30H13z"/><path class="edge" d="M24 11v22M32 11v22"/>';
+    g += '<path class="sh" d="M28 7V2"/>';
+    return '<svg class="iso" viewBox="0 0 56 44" aria-hidden="true">' + g + '</svg>';
+  }
+  g += '<path class="bd" d="M16 9h24v26H16z"/>';
+  g += '<path class="edge" d="M16 9a6 13 0 0 0 0 26"/><path class="edge" d="M16 9h24M16 35h24"/>';
+  g += '<ellipse class="cap" cx="40" cy="22" rx="6" ry="13"/>';
+  if(o.fins) g += '<path class="edge" d="M22 9v26M28 9v26M34 9v26"/>';
+  if(o.disc) g += '<ellipse class="cap" cx="27" cy="22" rx="4" ry="11"/>';
+  var n = o.pins || 0;
+  if(n){
+    g += '<path class="bd" d="M21 5h14v4H21z"/>';
+    for(var i = 0; i < n; i++){
+      var px = n === 1 ? 28 : 22 + i * (12 / (n - 1));
+      g += '<path class="pin" d="M' + px.toFixed(1) + ' 5V1"/>';
+    }
+  }
+  return '<svg class="iso" viewBox="0 0 56 44" aria-hidden="true">' + g + '</svg>';
+}
+
+/* standalone symbol for the reference table */
+function sym(id, live){
+  return '<svg class="sym" viewBox="0 0 140 104" preserveAspectRatio="xMidYMid meet" ' +
+         'aria-hidden="true">' + unitArt(id, live) + '</svg>';
+}
+
+/* ------------------------------------------------------- serviceability */
+function tally(a){
+  var m = {};
+  a.forEach(function(k){ m[k] = (m[k] || 0) + 1; });
+  return m;
+}
+function sameTally(a, b){
+  var x = tally(a), y = tally(b), k;
+  for(k in x) if(x[k] !== y[k]) return false;
+  for(k in y) if(x[k] !== y[k]) return false;
+  return true;
+}
+function currentJob(){
+  return JOBS.filter(function(j){ return j.id === state.job; })[0];
+}
+function serviceable(){
+  var job = currentJob();
+  if(!job || !job.sol) return false;
+  var opt = job.sol.opt || [];
+  var fitted = state.chain.map(function(c){ return c.id; })
+                          .filter(function(k){ return opt.indexOf(k) < 0; });
+  if(!sameTally(fitted, job.sol.units)) return false;
+  var live = state.chain.filter(function(c){ return c.on; }).map(function(c){ return c.id; });
+  return sameTally(live, job.sol.supply);
+}
+function loadState(){
+  if(!state.chain.length) return 'dead';
+  var job = currentJob();
+  var needsPower = !job.sol || job.sol.supply.length > 0;
+  if(needsPower && !state.chain.some(function(c){ return c.on; })) return 'dead';
+  if(serviceable()) return 'settle';
+  if(present('CT') && present('AMP') && present('MOT') && !present('FBK')) return 'runaway';
+  return 'judder';
+}
+
+/* ------------------------------------------------------------ bench layout */
+function isTransmitter(id){ return id === 'TX' || id === 'CX'; }
+
+function linkPorts(a, b){
+  var from = 'stator', label = 'S1 · S2 · S3';
+  if(a === 'TDX' || a === 'CDX'){ from = 'rotor'; label = 'R1 · R2 · R3'; }
+  else if(a === 'CT'){ from = 'rotor'; label = 'error signal'; }
+  else if(a === 'AMP'){ from = 'rotor'; label = 'amplified'; }
+  else if(a === 'RES'){ from = 'rotor'; label = 'sin / cos'; }
+  else if(a === 'PRB'){ from = 'rotor'; label = 'bridge'; }
+  var n = Math.min(portCount(a, from), portCount(b, 'stator'));
+  return {from:from, to:'stator', n:n, label:label};
+}
+
+/* Build the layout model: placed units, wires, supply rail, feedback loop. */
+function layout(){
+  var job = currentJob();
+  var seq = [], badges = [], fbk = false, i;
+  state.chain.forEach(function(c, idx){
+    if(c.id === 'FBK'){ fbk = true; badges.push({id:'FBK', idx:idx}); return; }
+    if(c.id === 'DMP'){ badges.push({id:'DMP', idx:idx}); return; }
+    seq.push({id:c.id, on:!!c.on, idx:idx});
+  });
+
+  /* two transmitters feeding one differential receiver stack vertically */
+  var hasDiffRx = seq.some(function(u){ return u.id === 'TDR'; });
+  var col = 0, txSeen = 0, firstTxCol = 0;
+  seq.forEach(function(u){
+    if(hasDiffRx && isTransmitter(u.id)){
+      txSeen++;
+      if(txSeen === 1){ firstTxCol = col; u.col = col++; u.row = 0; return; }
+      if(txSeen === 2){ u.col = firstTxCol; u.row = 1; return; }
+    }
+    u.col = col++; u.row = 0;
+  });
+
+  var cols = col, rows = seq.reduce(function(m, u){ return Math.max(m, u.row); }, 0) + 1;
+  seq.forEach(function(u){
+    u.x = MGN + u.col * PITCH;
+    u.y = TOPY + u.row * ROWH;
+  });
+
+  /* wires */
+  var wires = [], row0 = seq.filter(function(u){ return u.row === 0; });
+  for(i = 0; i < row0.length - 1; i++){
+    var a = row0[i], b = row0[i + 1];
+    var lk = linkPorts(a.id, b.id);
+    if(!lk.n) continue;
+    for(var k = 0; k < lk.n; k++){
+      var pa = portXY(a.id, lk.from, k), pb = portXY(b.id, lk.to, k);
+      if(!pa || !pb) continue;
+      wires.push({x1:a.x + pa.x, y1:a.y + pa.y, x2:b.x + pb.x, y2:b.y + pb.y,
+                  label:(k === 0 ? lk.label : null), mid:(a.x + U + b.x) / 2});
+    }
+  }
+  /* the stacked second transmitter feeds the differential rotor */
+  var stacked = seq.filter(function(u){ return u.row === 1; })[0];
+  var diffRx = seq.filter(function(u){ return u.id === 'TDR'; })[0];
+  if(stacked && diffRx){
+    var n2 = Math.min(portCount(stacked.id, 'stator'), portCount('TDR', 'rotor'));
+    for(i = 0; i < n2; i++){
+      var qa = portXY(stacked.id, 'stator', i), qb = portXY('TDR', 'rotor', i);
+      wires.push({x1:stacked.x + qa.x, y1:stacked.y + qa.y,
+                  x2:diffRx.x + qb.x,  y2:diffRx.y + qb.y,
+                  label:(i === 0 ? 'S1 · S2 · S3' : null),
+                  mid:(stacked.x + U + diffRx.x) / 2, bend:true});
+    }
+  }
+
+  var bodyBottom = TOPY + (rows - 1) * ROWH + UH;
+  var railY = bodyBottom + 54;
+  var fbY = railY + 48;
+  var width = MGN * 2 + cols * PITCH + LOADW - PITCH + U;
+  var height = (fbk ? fbY : railY) + 34;
+
+  return {job:job, seq:seq, badges:badges, wires:wires, fbk:fbk,
+          railY:railY, fbY:fbY, cols:cols, rows:rows,
+          width:Math.max(width, 640), height:height,
+          loadX:MGN + (cols - 1) * PITCH + U + 66, loadY:TOPY + 4};
+}
+
+/* ------------------------------------------------------------------ view */
+var $ = function(id){ return document.getElementById(id); };
+
+function renderJobs(){
+  $("jobs").innerHTML = JOBS.map(function(j){
+    return '<button class="job" type="button" data-job="' + j.id + '" aria-pressed="' +
+      (j.id === state.job) + '"><span class="tag">' + j.tag + '</span>' +
+      '<span class="jt">' + j.t + '</span><span class="jd">' + j.d + '</span></button>';
+  }).join("");
+}
+
+function renderBench(){
+  var L = layout(), job = L.job;
+  $("benchJob").textContent = job.t;
+
+  var run = state.run || null;
+  var flowing = run && run.flow;
+  var g = '';
+
+  /* ---- supply rail -------------------------------------------------- */
+  var railOn = state.chain.some(function(c){ return c.on; });
+  g += '<path class="rail' + (railOn && flowing ? ' flow' : '') +
+       '" d="M' + (MGN - 14) + ' ' + L.railY + 'H' + (L.width - 20) + '"/>';
+  g += '<text class="railbl' + (railOn ? ' on' : '') + '" x="' + (L.width - 20) +
+       '" y="' + (L.railY - 9) + '">26V 400 Hz SUPPLY</text>';
+
+  /* rotor drops to the rail */
+  L.seq.forEach(function(u){
+    var P = PORTS[u.id];
+    if(P.ro && P.ro.side !== 'd' && u.on){
+      /* this rotor takes its excitation through the units either side of it —
+         showing it tied to the rail is the point: the student can see the fault */
+      var n2 = portCount(u.id, 'rotor');
+      for(var m = 0; m < n2; m++){
+        var qq = portXY(u.id, 'rotor', m);
+        var xx = u.x + qq.x + 16 + m * 10;
+        g += '<path class="drop live wrong' + (flowing ? ' flow' : '') +
+             '" d="M' + (u.x + qq.x) + ' ' + (u.y + qq.y) + 'H' + xx +
+             'V' + L.railY + '"/>';
+        g += '<circle class="node live" cx="' + xx + '" cy="' + L.railY + '" r="3"/>';
+      }
+      g += '<text class="warn bad" x="' + (u.x + 70) + '" y="' + (L.railY - 12) +
+           '">rotor energised</text>';
+      return;
+    }
+    if(!P.ro || P.ro.side !== 'd') return;
+    var n = portCount(u.id, 'rotor');
+    for(var k = 0; k < n; k++){
+      var q = portXY(u.id, 'rotor', k);
+      var x = u.x + q.x, y0 = u.y + q.y;
+      if(u.on){
+        g += '<path class="drop live' + (flowing ? ' flow' : '') +
+             '" d="M' + x + ' ' + y0 + 'V' + L.railY + '"/>';
+        g += '<circle class="node live" cx="' + x + '" cy="' + L.railY + '" r="3"/>';
+      } else {
+        g += '<path class="drop off" d="M' + x + ' ' + y0 + 'V' + (L.railY - 22) + '"/>';
+        if(k === 0){
+          g += '<text class="warn" x="' + (x - 6) + '" y="' + (L.railY - 10) +
+               '">not connected</text>';
+        }
+      }
+    }
+  });
+
+  /* ---- interconnecting wires ---------------------------------------- */
+  L.wires.forEach(function(w){
+    var d;
+    if(w.bend){
+      var mx = (w.x1 + w.x2) / 2;
+      d = 'M' + w.x1 + ' ' + w.y1 + 'H' + mx + 'V' + w.y2 + 'H' + w.x2;
+    } else {
+      d = 'M' + w.x1 + ' ' + w.y1 + 'H' + w.x2;
+      if(w.y1 !== w.y2){
+        var mid = (w.x1 + w.x2) / 2;
+        d = 'M' + w.x1 + ' ' + w.y1 + 'H' + mid + 'V' + w.y2 + 'H' + w.x2;
+      }
+    }
+    g += '<path class="wire' + (flowing ? ' flow' : '') + '" d="' + d + '"/>';
+    g += '<circle class="node" cx="' + w.x1 + '" cy="' + w.y1 + '" r="2.4"/>';
+    g += '<circle class="node" cx="' + w.x2 + '" cy="' + w.y2 + '" r="2.4"/>';
+    if(w.label){
+      g += '<text class="wlbl" x="' + w.mid + '" y="' + (Math.min(w.y1, w.y2) - 10) +
+           '">' + w.label + '</text>';
+    }
+  });
+
+  /* ---- units --------------------------------------------------------- */
+  L.seq.forEach(function(u){
+    var c = C[u.id];
+    g += '<g class="unit ' + c.fam + (u.on ? ' energised' : '') +
+         '" transform="translate(' + u.x + ',' + u.y + ')">' +
+         unitArt(u.id, u.on) +
+         '<text class="uab" x="70" y="' + (u.row ? UH + 17 : -2) + '">' +
+         c.ab + '</text></g>';
+  });
+
+  /* ---- load ---------------------------------------------------------- */
+  var ls = run ? run.load : 'dead';
+  var lx = L.loadX, ly = L.loadY + 24;
+  g += '<g class="dial ' + ls + '" transform="translate(' + lx + ',' + ly + ')">' +
+       '<circle class="core" cx="0" cy="0" r="30"/>' +
+       '<circle class="hub" cx="0" cy="0" r="3"/>' +
+       '<path class="tick" d="M0 -30v6M21 -21l-4 4M30 0h-6M21 21l-4-4M0 30v-6"/>' +
+       '<g class="needle"><path d="M-2.5 0L0 -25L2.5 0Z"/></g></g>';
+  g += '<text class="loadlbl" x="' + lx + '" y="' + (ly + 48) + '">LOAD</text>';
+  g += '<text class="loadnm" x="' + lx + '" y="' + (ly + 64) + '">' +
+       job.t.toUpperCase() + '</text>';
+
+  /* mechanical drive into the load */
+  var last = L.seq.filter(function(u){ return u.row === 0; }).pop();
+  if(last && PORTS[last.id].sh === 'r'){
+    g += '<path class="mech drive' + (flowing && ls !== 'dead' ? ' mflow' : '') +
+         '" d="M' + (last.x + 123) + ' ' + (last.y + 48) + 'H' + (lx - 34) + '"/>';
+  }
+
+  /* ---- closed feedback loop ------------------------------------------ */
+  if(L.fbk){
+    var tgt = L.seq.filter(function(u){ return PORTS[u.id].sh === 'd'; })[0] || L.seq[0];
+    var tx = tgt.x + 70, ty = tgt.y + 100;
+    var d = 'M' + lx + ' ' + (ly + 30) + 'V' + L.fbY + 'H' + tx + 'V' + ty;
+    g += '<path class="mech loop' + (flowing && ls !== 'dead' ? ' mflow' : '') +
+         '" d="' + d + '"/>';
+    var ax = (lx + tx) / 2;
+    g += '<path class="arrow" d="M' + ax + ' ' + (L.fbY - 5) + 'l-7 5 7 5"/>';
+    g += '<text class="looplbl" x="' + (ax + 12) + '" y="' + (L.fbY - 10) +
+         '">MECHANICAL FEEDBACK — CLOSED LOOP</text>';
+    g += '<circle class="node" cx="' + tx + '" cy="' + ty + '" r="3"/>';
+  }
+
+  var svg = '<svg class="bench' + (L.fbk ? ' looped' : '') + '" viewBox="0 0 ' +
+            L.width + ' ' + L.height + '" width="' + L.width + '" height="' + L.height +
+            '" role="img" aria-label="Bench wiring diagram">' + g + '</svg>';
+
+  if(!state.chain.length){
+    svg = '<p class="empty">Bench clear — add the first unit from the parts below.</p>';
+  }
+  $("chain").innerHTML = svg;
+
+  /* ---- control strip -------------------------------------------------- */
+  var strip = state.chain.map(function(c, i){
+    var u = C[c.id];
+    var sup = u.supply === 'n/a' ? '' :
+      '<button class="chipsup" type="button" data-sup="' + i + '" aria-pressed="' +
+      (!!c.on) + '" title="26V 400Hz supply">' + (c.on ? '26V ON' : 'SUP OFF') + '</button>';
+    return '<span class="chip ' + u.fam + '"><b>' + u.ab + '</b>' + sup +
+      '<button class="mini" type="button" data-mv="' + i + '" data-dir="-1" aria-label="Move ' +
+      u.ab + ' left">&larr;</button>' +
+      '<button class="mini" type="button" data-mv="' + i + '" data-dir="1" aria-label="Move ' +
+      u.ab + ' right">&rarr;</button>' +
+      '<button class="mini" type="button" data-rm="' + i + '" aria-label="Remove ' +
+      u.ab + '">&times;</button></span>';
+  }).join('');
+  $("strip").innerHTML = strip ||
+    '<span class="striphint">Units you add appear here, with their supply switches.</span>';
+}
+
+function renderBin(){
+  var groups = {torque:["TX","TR","TDX","TDR"], control:["CX","CDX","CT"],
+                other:["RES","PRB","AMP","MOT","FBK","DMP"]};
+  var ids = {torque:"binTorque", control:"binControl", other:"binOther"};
+  Object.keys(groups).forEach(function(g){
+    $(ids[g]).innerHTML = groups[g].map(function(k){
+      return '<button class="part ' + C[k].fam + '" type="button" data-add="' + k + '">' +
+             iso(C[k].iso) + '<b>' + C[k].ab + '</b><span>' + C[k].nm + '</span></button>';
+    }).join("");
+  });
+}
+
+function renderRef(){
+  $("refBody").innerHTML = Object.keys(C).map(function(k){
+    var c = C[k];
+    var sup = c.supply === "required" ? "Yes — 26V 400Hz" :
+              c.supply === "never" ? "No — never connected" : "—";
+    return "<tr><td class='symcell " + c.fam + "'>" + sym(k, c.supply === 'required') + "</td>" +
+      "<td class='ab'>" + c.ab + "<br><span style='font-weight:400;font-size:11px'>" +
+      c.nm + "</span></td><td>" + c.rotor + "</td><td>" + c.stator + "</td><td>" + sup + "</td></tr>";
+  }).join("");
+}
+
+function renderAnswer(){
+  var job = JOBS.filter(function(j){ return j.id === state.job; })[0];
+  var box = $("answerBox");
+  box.querySelector("summary").textContent = "Model answer \u2014 " + job.t;
+  var body = box.querySelector(".ansbody");
+  if(state.tested.indexOf(state.job) < 0){
+    box.open = false;
+    body.innerHTML = '<p class="locked">Run a functional check on this job first. Build it, ' +
+      'read the symptom and work out why it happens \u2014 then come back and compare your ' +
+      'reasoning with this one.</p>';
+    return;
+  }
+  var a = job.ans;
+  body.innerHTML =
+    '<div class="ansrow"><span class="al">Serviceable team</span><span class="av mono">' + a.team + '</span></div>' +
+    '<div class="ansrow"><span class="al">Supply goes to</span><span class="av">' + a.supply + '</span></div>' +
+    '<div class="ansrow"><span class="al">Why this team</span><span class="av">' + a.why + '</span></div>' +
+    '<div class="ansrow"><span class="al">What catches people out</span><span class="av">' + a.watch + '</span></div>';
+}
+
+function renderReadout(obs){
+  var job = JOBS.filter(function(j){ return j.id === state.job; })[0];
+  var body;
+  if(!obs){
+    body = '<div class="obs"><span class="oi">READY</span><span class="ot">' +
+      'Build a team for this job. Write down what you expect it to do \u2014 then run the ' +
+      'functional check and see whether the bench agrees with you.' +
+      '</span></div>';
+  } else {
+    body = obs.map(function(t, i){
+      return '<div class="obs"><span class="oi">OBS ' + (i + 1) +
+        '</span><span class="ot">' + t + '</span></div>';
+    }).join("");
+  }
+  $("readout").innerHTML =
+    '<div class="rohead"><span class="rt">Functional check</span>' +
+    '<span class="rs">' + job.t.toUpperCase() + '</span></div>' + body +
+    '<div class="rofoot">These are observations from test, not a verdict. Explain on your bench sheet ' +
+    'why each one happens before you change anything.</div>';
+  $("counter").textContent = "CHECKS RUN: " + state.checks;
+}
+
+/* ------------------------------------------------------------------ state */
+function save(){
+  try{ localStorage.setItem("synchro-bench", JSON.stringify(
+      {job:state.job, chain:state.chain, tested:state.tested})); }
+  catch(e){ /* storage unavailable */ }
+}
+function load(){
+  try{
+    var raw = localStorage.getItem("synchro-bench");
+    if(!raw) return;
+    var d = JSON.parse(raw);
+    if(d && d.job && Array.isArray(d.chain) &&
+       JOBS.some(function(j){ return j.id === d.job; })){
+      state.job = d.job;
+      state.chain = d.chain.filter(function(s){ return s && C[s.id]; });
+      if(Array.isArray(d.tested)) state.tested = d.tested;
+    }
+  }catch(e){ /* ignore corrupt or blocked storage */ }
+}
+
+function redraw(obs){
+  if(obs === null) state.run = null;
+  renderJobs(); renderBench(); renderReadout(obs); renderAnswer(); save();
+}
+
+/* ------------------------------------------------------------------ events */
+document.addEventListener("click", function(e){
+  var t = e.target.closest("button");
+  if(!t) return;
+
+  if(t.dataset.job){ state.job = t.dataset.job; redraw(null); return; }
+  if(t.dataset.add){
+    var c = C[t.dataset.add];
+    state.chain.push({id:t.dataset.add, on:(c.supply === "required")});
+    redraw(null); return;
+  }
+  if(t.dataset.rm !== undefined){ state.chain.splice(+t.dataset.rm, 1); redraw(null); return; }
+  if(t.dataset.mv !== undefined){
+    var i = +t.dataset.mv, j = i + (+t.dataset.dir);
+    if(j >= 0 && j < state.chain.length){
+      var tmp = state.chain[i]; state.chain[i] = state.chain[j]; state.chain[j] = tmp;
+    }
+    redraw(null); return;
+  }
+  if(t.dataset.sup !== undefined){
+    var s = state.chain[+t.dataset.sup]; s.on = !s.on; redraw(null); return;
+  }
+  if(t.id === "runBtn"){
+    state.checks++;
+    if(state.tested.indexOf(state.job) < 0) state.tested.push(state.job);
+    state.run = {flow:state.chain.some(function(c){ return c.on; }), load:loadState()};
+    redraw(evaluate()); return;
+  }
+  if(t.id === "clearBtn"){ state.chain = []; redraw(null); return; }
+  if(t.id === "themeToggle"){
+    var root = document.documentElement;
+    var dark = root.getAttribute("data-theme") === "dark" ||
+      (!root.getAttribute("data-theme") &&
+       window.matchMedia("(prefers-color-scheme: dark)").matches);
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+    return;
+  }
+});
+
+/* ------------------------------------------------------------------ boot */
+load();
+renderBin(); renderRef(); redraw(null);
+</script>
+
+</body></html>
