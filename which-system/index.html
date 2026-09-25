@@ -1,0 +1,516 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which System?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F5F7F7; --surface:#FFFFFF; --sunk:#EDF1F2;
+  --ink:#16212B; --muted:#5C6B77; --faint:#8598A4;
+  --rail:#D7E0E3; --rail-soft:#E7EDEF;
+  --accent:#0E7C96; --accent-soft:#DCEEF3;
+  --good:#1E8A5F; --good-soft:#E1F3EA;
+  --bad:#D93B2B; --bad-soft:#FBE4E1;
+  --warn:#9A6100; --warn-soft:#F7EBD6;
+  --shadow:0 1px 2px rgba(22,33,43,.06), 0 8px 24px -16px rgba(22,33,43,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+    --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+    --rail:#27343E; --rail-soft:#1F2B34;
+    --accent:#45B4D0; --accent-soft:#12303A;
+    --good:#4CC38A; --good-soft:#123423;
+    --bad:#FF7161; --bad-soft:#3A1C18;
+    --warn:#E0A33C; --warn-soft:#2E2612;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+  --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+  --rail:#27343E; --rail-soft:#1F2B34;
+  --accent:#45B4D0; --accent-soft:#12303A;
+  --good:#4CC38A; --good-soft:#123423;
+  --bad:#FF7161; --bad-soft:#3A1C18;
+  --warn:#E0A33C; --warn-soft:#2E2612;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink); margin:0;
+  font-family:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size:15px; line-height:1.5;
+  padding-inline:16px; padding-block:22px 44px;
+}
+.wrap{max-width:1220px; margin:0 auto}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif; margin:0; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums}
+.masthead{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:6px}
+h1{font-size:clamp(23px,4.2vw,33px); font-weight:700; letter-spacing:-.015em}
+.sub{color:var(--muted); font-size:14.5px; max-width:74ch; margin:0 0 20px}
+.eyebrow{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11.5px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent)}
+
+.stages{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; margin-bottom:16px}
+.stage{background:var(--surface); border:1px solid var(--rail); border-radius:9px; padding:14px 15px}
+.stage.s1{border-top:3px solid var(--accent)}
+.stage.s2{border-top:3px solid var(--bad)}
+.stage.s3{border-top:3px solid var(--faint)}
+.stage-hd{display:flex; align-items:baseline; gap:8px; margin-bottom:3px}
+.stage-hd .n{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; color:var(--faint)}
+.stage-hd h3{font-size:15px; font-weight:700; letter-spacing:-.005em}
+.stage .when{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:9px}
+.stage ol,.stage ul{margin:0; padding-left:17px; font-size:13.5px; line-height:1.5}
+.stage li{margin-bottom:5px}
+.stage li:last-child{margin-bottom:0}
+.stage .rule{margin-top:10px; padding-top:9px; border-top:1px solid var(--rail-soft); font-size:12.5px; color:var(--muted)}
+.stage .rule b{color:var(--ink)}
+.stage pre{background:var(--sunk); border:1px solid var(--rail-soft); border-radius:6px; padding:9px 10px;
+  font-family:"IBM Plex Mono",monospace; font-size:12px; line-height:1.5; white-space:pre-wrap; margin:6px 0}
+
+.panel{background:var(--surface); border:1px solid var(--rail); border-radius:9px; padding:16px}
+.panel + .panel{margin-top:14px}
+.panel-hd{display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  margin:0 0 13px; padding-bottom:9px; border-bottom:1px solid var(--rail-soft)}
+.panel-hd h2{font-size:14px; font-weight:600; letter-spacing:.055em; text-transform:uppercase}
+.panel-hd .note{font-size:12px; color:var(--faint)}
+
+.grid{display:grid; grid-template-columns:minmax(0,320px) minmax(0,1fr); gap:14px; align-items:start}
+@media (max-width:900px){ .grid{grid-template-columns:minmax(0,1fr)} }
+
+.caselist{display:flex; flex-direction:column; gap:6px}
+.case-btn{text-align:left; cursor:pointer; padding:10px 11px; border:1px solid var(--rail); border-radius:7px;
+  background:var(--sunk); color:var(--ink); font-family:inherit}
+.case-btn .k{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--faint)}
+.case-btn .t{font-size:13px; font-weight:600; margin-top:2px}
+.case-btn[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent)}
+.case-btn.done{opacity:.68}
+.case-btn.done .t::after{content:" \2713"; color:var(--good); font-weight:700}
+.case-btn.wrong .t::after{content:" \2715"; color:var(--bad); font-weight:700}
+
+.score{margin-top:12px; padding:10px 11px; background:var(--sunk); border:1px solid var(--rail-soft); border-radius:7px;
+  font-family:"IBM Plex Mono",monospace; font-size:13px; text-align:center}
+.score b{font-size:17px; color:var(--accent)}
+
+.brief{background:var(--sunk); border:1px solid var(--rail-soft); border-radius:8px; padding:13px 14px; margin-bottom:14px; font-size:14px}
+.brief .tag{display:inline-block; font-family:"IBM Plex Sans Condensed",sans-serif; font-size:10.5px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:6px}
+
+.step{margin-bottom:15px}
+.step-lab{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:7px}
+.opts{display:flex; gap:8px; flex-wrap:wrap}
+.opts button{flex:1 1 150px; padding:10px 12px; cursor:pointer; text-align:left;
+  font-family:"IBM Plex Sans",sans-serif; font-size:13.5px;
+  background:var(--surface); color:var(--ink); border:1px solid var(--rail); border-radius:7px;
+  transition:background .12s,border-color .12s}
+.opts button:hover{border-color:var(--accent)}
+.opts button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+.opts button:disabled{cursor:default}
+.opts.family button{flex:1 1 200px; font-size:12.8px}
+
+.rowbtns{display:flex; gap:8px; margin-top:4px; flex-wrap:wrap}
+.rowbtns button{padding:9px 16px; cursor:pointer; font-size:13.5px;
+  font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600; letter-spacing:.03em;
+  background:var(--surface); color:var(--ink); border:1px solid var(--rail); border-radius:7px}
+.rowbtns button:hover{border-color:var(--accent); color:var(--accent)}
+.rowbtns button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.rowbtns button.primary:hover{color:#fff; filter:brightness(1.08)}
+.rowbtns button:disabled{opacity:.4; cursor:not-allowed}
+
+.verdict{margin-top:16px; border-radius:8px; padding:13px 14px; border:1px solid var(--rail)}
+.verdict.good{background:var(--good-soft); border-color:var(--good)}
+.verdict.bad{background:var(--bad-soft); border-color:var(--bad)}
+.verdict .vh{display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; margin-bottom:6px}
+.verdict.good .vh{color:var(--good)}
+.verdict.bad .vh{color:var(--bad)}
+.verdict p{margin:0 0 7px; font-size:13.5px}
+.verdict p:last-child{margin-bottom:0}
+.verdict .consequence{font-size:13px; color:var(--muted); border-top:1px dashed var(--rail); margin-top:9px; padding-top:9px}
+
+.matrix-wrap{overflow-x:auto}
+table.matrix{border-collapse:collapse; width:100%; font-size:12.6px}
+table.matrix th, table.matrix td{border:1px solid var(--rail-soft); padding:7px 9px; text-align:left; vertical-align:top}
+table.matrix th{background:var(--sunk); font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600;
+  text-transform:uppercase; letter-spacing:.04em; font-size:11px; color:var(--muted)}
+table.matrix td.tech{font-weight:600; white-space:nowrap}
+
+.foot{margin-top:18px; font-size:12px; color:var(--faint); text-align:center}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Which System?</h1>
+    <span class="eyebrow">Topic&nbsp;10 · Electronic Instruments &amp; Digital Aircraft Systems</span>
+  </div>
+  <p class="sub">Nine real flight-deck events. For each one: identify the <b>system</b> responsible (EFIS, EICAS/ECAM, BITE, ACARS, FBW, FMS, TCAS, GPS or IRS), then the <b>specific detail within it</b> the topic actually distinguishes. Every verdict traces to a stated fact.</p>
+
+  <div class="stages">
+    <section class="stage s1">
+      <div class="stage-hd"><span class="n">01</span><h3>Predict, then check</h3></div>
+      <div class="when">8 minutes · no AI</div>
+      <ol>
+        <li>Screens down. On paper, for cases <b>1, 2, 3 and 7</b> below: name the system <i>and</i> the specific detail, with one sentence why.</li>
+        <li>Then open the identifier and check all four. Mark each right or wrong.</li>
+      </ol>
+      <div class="rule">The wrong ones are the useful ones — write one line on <b>what fact you were missing</b>, not just "I was wrong".</div>
+    </section>
+
+    <section class="stage s2">
+      <div class="stage-hd"><span class="n">02</span><h3>Make AI commit</h3></div>
+      <div class="when">10 minutes · AI never gives the answer first</div>
+      <p style="margin:0 0 4px;font-size:13.5px">Paste this, exactly as written, about <b>Case 5</b> (the flight-control case):</p>
+      <pre>I am an aerospace electronics student.
+Here is an aircraft event: [paste Case 5's
+brief]. Make FIVE specific, testable
+claims: the system responsible, the exact
+detail within it, and three supporting
+facts about why that detail fits. Number
+them 1 to 5. Do not hedge.</pre>
+      <div class="rule">Open Case 5 in the identifier and adjudicate every claim against it. Mark each <b>true</b> or <b>false</b>, and for each false one, say what AI got wrong.</div>
+    </section>
+
+    <section class="stage s3">
+      <div class="stage-hd"><span class="n">03</span><h3>Settle it</h3></div>
+      <div class="when">9 minutes · together, then alone</div>
+      <ul>
+        <li>Scores on the board. How many of five did AI get right on Case 5?</li>
+        <li>One question for the room: <b>why are EICAS and ECAM not two different systems?</b></li>
+        <li><b>Transfer (no identifier, justify from the summary table below):</b> the flight crew gets an aural alert and a display command to climb immediately, because another aircraft is now 700 feet away vertically and 25 seconds away on present trajectory. System, detail, and why?</li>
+      </ul>
+      <div class="rule">Finish these two, in writing:<br>• Before today I thought BITE only ran when an engineer started a test, because …<br>• AI got __ of 5 right on Case 5. The one it got wrong was wrong because …</div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <div>
+      <section class="panel">
+        <div class="panel-hd"><h2>Cases</h2><span class="note">pick one</span></div>
+        <div class="caselist" id="caselist"></div>
+        <div class="score">Checked: <b id="score-n">0</b> / <span id="score-t">9</span> &nbsp;·&nbsp; Correct: <b id="score-c">0</b></div>
+      </section>
+    </div>
+
+    <div>
+      <section class="panel">
+        <div class="panel-hd"><h2 id="case-title">Select a case</h2><span class="note" id="case-eyebrow"></span></div>
+        <div class="brief" id="case-brief"></div>
+
+        <div class="step">
+          <div class="step-lab">Step 1 · System</div>
+          <div class="opts family" id="opts-family"></div>
+        </div>
+
+        <div class="step" id="step2-wrap" style="display:none">
+          <div class="step-lab" id="step2-lab">Step 2 · Detail</div>
+          <div class="opts" id="opts-sub"></div>
+        </div>
+
+        <div class="rowbtns">
+          <button type="button" class="primary" id="btn-check" disabled>Check</button>
+          <button type="button" id="btn-reset">Clear this case</button>
+        </div>
+
+        <div id="verdict"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-hd"><h2>System summary — for the debrief</h2><span class="note">core role, per the topic's own facts</span></div>
+    <div class="matrix-wrap">
+      <table class="matrix" id="matrix"></table>
+    </div>
+  </section>
+
+  <p class="foot">Facts sourced from Topic 10 · Electronic Instruments and Typical Digital Aircraft Systems. Every verdict traces to a stated property or a named example.</p>
+</div>
+
+<script>
+const FAMILIES = ["EFIS","EICAS / ECAM","BITE","ACARS","FBW","FMS","TCAS","GPS","IRS"];
+
+const CASES = [
+ { id:"1", tag:"Case 1", title:"Red flashing ATTITUDE flag",
+   brief:"On the pilot's main flight instrument, a red 'ATTITUDE' flag begins flashing and the pitch/roll scale markings disappear, because the system has lost a valid attitude signal.",
+   family:"EFIS", axisLabel:"Which display?", subs:[
+     {id:"pfd", label:"PFD / EADI", correct:true,
+      why:"Attitude display, and the comparator warning flags for it, are named PFD functions — and the topic states directly that when EFIS loses the system-valid signal for attitude or airspeed, the corresponding display and scale markings are removed and a warning flag is shown.",
+      wrong:"—"},
+     {id:"nd", label:"ND / EHSI", correct:false,
+      why:"The Navigation Display carries heading, track, course and weather information, not the attitude scale.",
+      wrong:"Attitude and its comparator warnings are named PFD/EADI functions — a lost attitude signal shows up there, not on the ND."} ]},
+
+ { id:"2", tag:"Case 2", title:"Red flashing engine message + master warning",
+   brief:"An engine parameter has exceeded limits requiring immediate crew action. A message appears in red, flashes, and triggers the additional warning light on the glare shield plus an aural tone.",
+   family:"EICAS / ECAM", axisLabel:"Which alert level?", subs:[
+     {id:"a", label:"Level A — warning (red)", correct:true,
+      why:"Level A warning messages are red, and set off the glare-shield warning lights and aural alert — matching every detail in this brief. Pressing the switch turns off the light and aural alert.",
+      wrong:"—"},
+     {id:"b", label:"Level B — caution (amber)", correct:false,
+      why:"Level B is amber and also triggers the glare-shield light and aural alert, but for conditions needing crew AWARENESS, not immediate action.",
+      wrong:"This brief specifically says the message is red and requires immediate action — that is Level A, not the amber Level B."},
+     {id:"c", label:"Level C — status (white)", correct:false,
+      why:"Level C is a white/yellow status message with no glare-shield light and no aural tone at all.",
+      wrong:"This brief describes flashing lights and an aural tone — Level C generates neither."} ]},
+
+ { id:"3", tag:"Case 3", title:"Checking for faults after a power interruption",
+   brief:"Before today's first flight, ground engineers want to know whether yesterday's brief power interruption left any faults in memory, configuration or I/O — checked automatically on the ground, without disturbing normal operation once airborne.",
+   family:"BITE", axisLabel:"Which type of test?", subs:[
+     {id:"powerup", label:"Power-Up Test", correct:true,
+      why:"Power-Up Test is a safety test executed on the ground after a power cut of more than 200 ms, and its named examples are exactly memory, configuration and I/O tests.",
+      wrong:"—"},
+     {id:"cyclic", label:"Cyclic Test", correct:false,
+      why:"Cyclic Test runs continuously in the background without disturbing system operation — a watchdog/RAM/message-validity check, not a post-power-cut memory check.",
+      wrong:"This case is specifically about a power interruption and ground-only checking — that is the named trigger for the Power-Up Test, not the always-on Cyclic Test."},
+     {id:"system", label:"System Test", correct:false,
+      why:"System Test is a maintenance-initiated test, typically run after an LRU replacement, and is more comprehensive than the Power-Up Test.",
+      wrong:"No LRU has been replaced here — the trigger described (a power cut) points to the Power-Up Test specifically."},
+     {id:"specific", label:"Specific Test", correct:false,
+      why:"Specific Test is used to generate signals to command devices such as actuators or valves for particular systems only.",
+      wrong:"Nothing here involves commanding an actuator or valve — this is a memory/configuration check after a power cut."} ]},
+
+ { id:"4", tag:"Case 4", title:"Revised oceanic clearance received automatically",
+   brief:"Out of VHF range of company dispatch over the ocean, the aircraft automatically receives a revised oceanic clearance from a ground service provider, with no crew action required to request it.",
+   family:"ACARS", axisLabel:"Uplink or downlink?", subs:[
+     {id:"uplink", label:"Uplink message", correct:true,
+      why:"The topic states uplink messages originate from ground stations. A clearance sent TO the aircraft from a ground service provider is, by that definition, an uplink.",
+      wrong:"—"},
+     {id:"downlink", label:"Downlink message", correct:false,
+      why:"Downlink messages originate FROM the aircraft, going to the ground network.",
+      wrong:"This message travels from the ground TO the aircraft — the reverse direction of a downlink."} ]},
+
+ { id:"5", tag:"Case 5", title:"Single ADIRU fault in flight",
+   brief:"In cruise, one of the aircraft's three ADIRUs develops a fault. The flight control system reconfigures: some flight-envelope protections are lost, but it is not a complete loss of protection, and it is not a mechanical-only backup mode.",
+   family:"FBW", axisLabel:"Which control law?", subs:[
+     {id:"alternate", label:"Alternate Law (ALT 1)", correct:true,
+      why:"Alternate Law is explicitly triggered by specific failures including faults in a single ADIRU — some protection is lost, but not all of it, distinguishing it from both Normal Law (all protection) and Direct Law (no protection, surface motion directly follows the stick).",
+      wrong:"—"},
+     {id:"normal", label:"Normal Law", correct:false,
+      why:"Normal Law provides all protections and requires a fully serviceable aircraft.",
+      wrong:"A genuine ADIRU fault has occurred and protection has been lost — Normal Law's 'all protection available' no longer applies."},
+     {id:"direct", label:"Direct Law", correct:false,
+      why:"Direct Law means control-surface motion follows the side-stick directly, with ALL protections lost — triggered by failure of all three inertial reference units, not just one.",
+      wrong:"Only ONE of three ADIRUs has failed, and the case states protection is not completely lost — Direct Law needs all three IRUs to fail."} ]},
+
+ { id:"6", tag:"Case 6", title:"Entering the route before departure",
+   brief:"Before departure, the flight crew enters the origin, destination and intermediate waypoints via a cockpit interface unit to define the planned route.",
+   family:"FMS", axisLabel:"Which unit?", subs:[
+     {id:"cdu", label:"Control Display Unit (CDU)", correct:true,
+      why:"The topic states the CDU is the main human interface to the Flight Management Computer, and that waypoints are entered into the FMC via the CDU to define the route — exactly this case.",
+      wrong:"—"},
+     {id:"fmc", label:"Flight Management Computer (FMC)", correct:false,
+      why:"The FMC does the navigation computation — comparing the selected flight plan with actual position and generating steering/thrust commands.",
+      wrong:"The FMC is not what the crew types into — waypoint entry happens at the CDU, which then talks to the FMC."} ]},
+
+ { id:"7", tag:"Case 7", title:"Traffic 900 ft below, 40 seconds away",
+   brief:"Climbing through 4,500 ft, the crew hears an aural alert and sees a symbol for another aircraft approximately 900 feet below and 40 seconds away on present trajectory. It is advisory position information only — no manoeuvre is being instructed.",
+   family:"TCAS", axisLabel:"TA or RA?", subs:[
+     {id:"ta", label:"Traffic Advisory (TA)", correct:true,
+      why:"TA is defined as +/-1200 feet and approximately 45 seconds distance, giving position information only, with no recommended manoeuvre — matching every detail here.",
+      wrong:"—"},
+     {id:"ra", label:"Resolution Advisory (RA)", correct:false,
+      why:"RA is defined as +/-750 feet and approximately 30 seconds distance, and specifically recommends a manoeuvre to increase separation.",
+      wrong:"This case is outside RA's tighter range (900 ft / 40 s vs RA's 750 ft / 30 s) and explicitly says no manoeuvre is instructed — that rules out RA."} ]},
+
+ { id:"8", tag:"Case 8", title:"Fourth satellite acquired",
+   brief:"The aircraft's satellite receiver already has a fix using three satellites, but acquires a fourth specifically to correct a timing error in its own (non-atomic) clock and obtain an accurate three-dimensional position.",
+   family:"GPS", axisLabel:"How many satellites for an accurate 3D fix?", subs:[
+     {id:"four", label:"4 satellites", correct:true,
+      why:"The topic states directly that 4 satellites are required to get an accurate 3D position — the fourth measurement corrects the receiver's timing error, since the receiver (unlike the satellites) has no atomic clock.",
+      wrong:"—"},
+     {id:"three", label:"3 satellites", correct:false,
+      why:"Three satellites narrow the possible position to two points in space, one of which can be discarded as invalid — but this still leaves receiver clock error uncorrected.",
+      wrong:"Three satellites alone leave the receiver's non-atomic clock error uncorrected — a fourth is specifically required for an accurate 3D fix."} ]},
+
+ { id:"9", tag:"Case 9", title:"Self-contained navigation sensor",
+   brief:"This navigation sensor needs no external signal at all. It holds three spinning masses mounted orthogonally in a frame that maintains their direction of spin during aircraft manoeuvres, so that only the vertically-oriented accelerometer measures gravity.",
+   family:"IRS", axisLabel:"Gimballed or strapdown?", subs:[
+     {id:"gimballed", label:"Gimballed", correct:true,
+      why:"The topic describes exactly this: three orthogonal gyros mounted in a gimbal frame that maintains their spin direction during aircraft movement, giving gimballed IRS its lower-error advantage — only the vertical accelerometer experiences gravity-related error.",
+      wrong:"—"},
+     {id:"strapdown", label:"Strapdown", correct:false,
+      why:"Strapdown sensors are fixed rigidly to the aircraft body — they rotate WITH the aircraft, so all their accelerometers experience gravity-related error, and the gyros must measure the subtended angle of motion rather than simply spin.",
+      wrong:"A strapdown system has no gimbal frame decoupling the sensors from aircraft rotation — the gravity-isolation property in this case is specifically a gimballed-system advantage."} ]},
+];
+
+const MATRIX = [
+ {tech:"EFIS", core:"All electronic flight displays and processors: PFD/EADI (attitude, flight director, speed/altitude deviation) and ND/EHSI (heading, course, weather, 5 map modes)"},
+ {tech:"EICAS / ECAM", core:"Engine Indicating & Crew Alerting: same role, Boeing names it EICAS, Airbus names it ECAM. 3 alert levels — A red warning, B amber caution, C white status"},
+ {tech:"BITE", core:"On-board fault diagnosis. 4 types: Power-Up (ground, after power cut), Cyclic (continuous background), System (maintenance-initiated), Specific (drives actuators/valves for one system)"},
+ {tech:"ACARS", core:"Air-ground digital data link. Downlink = from aircraft; Uplink = from ground. Carries clearances, weather, ATIS; specified in ARINC 724B"},
+ {tech:"FBW", core:"Electrically-signalled, hydraulically-activated flight controls. 3 control laws — Normal (all protection), Alternate (some lost, ALT1/ALT2), Direct (none, stick-to-surface)"},
+ {tech:"FMS", core:"Navigation + guidance + power management from one LRU. CDU = crew interface (waypoint entry); FMC = computation (Best Computed Position, within 0.1 NM)"},
+ {tech:"TCAS", core:"Collision avoidance via transponder replies. TA = +/-1200 ft / ~45 s, position only. RA = +/-750 ft / ~30 s, recommends a manoeuvre. Vertical guidance only"},
+ {tech:"GPS", core:"24-satellite constellation, 3 segments (space/control/user). 3 satellites narrow to 2 points; 4th satellite needed to correct receiver clock error for accurate 3D fix"},
+ {tech:"IRS", core:"Self-contained inertial navigation — gyros + accelerometers + computer + clock. Gimballed: lower error, mechanically complex. Strapdown: simpler, all axes see gravity error"},
+];
+
+let current = null;
+let picks = {};
+
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+
+function buildCaseList(){
+  const wrap = document.getElementById('caselist');
+  wrap.innerHTML='';
+  CASES.forEach(c=>{
+    const b = el('button','case-btn');
+    b.type='button';
+    b.dataset.id=c.id;
+    b.innerHTML = `<div class="k">${c.tag}</div><div class="t">${c.title}</div>`;
+    b.addEventListener('click', ()=>selectCase(c.id));
+    wrap.appendChild(b);
+  });
+  refreshCaseList();
+}
+
+function refreshCaseList(){
+  document.querySelectorAll('.case-btn').forEach(b=>{
+    const p = picks[b.dataset.id];
+    b.setAttribute('aria-pressed', current===b.dataset.id ? 'true':'false');
+    b.classList.toggle('done', !!(p && p.checked && p.correct));
+    b.classList.toggle('wrong', !!(p && p.checked && !p.correct));
+  });
+  let n=0,c=0;
+  Object.values(picks).forEach(p=>{ if(p.checked){ n++; if(p.correct) c++; } });
+  document.getElementById('score-n').textContent=n;
+  document.getElementById('score-c').textContent=c;
+}
+
+function selectCase(id){
+  current = id;
+  const c = CASES.find(x=>x.id===id);
+  if(!picks[id]) picks[id]={family:null, sub:null, checked:false, correct:false};
+  document.getElementById('case-title').textContent = c.tag+' — '+c.title;
+  document.getElementById('case-eyebrow').textContent = 'system, then detail';
+  document.getElementById('case-brief').innerHTML = `<span class="tag">Event</span><br>${c.brief}`;
+
+  const fWrap = document.getElementById('opts-family');
+  fWrap.innerHTML='';
+  FAMILIES.forEach(f=>{
+    const b = el('button', null, f);
+    b.type='button';
+    b.setAttribute('aria-pressed', picks[id].family===f ? 'true':'false');
+    b.disabled = picks[id].checked;
+    b.addEventListener('click', ()=>{ picks[id].family=f; picks[id].sub=null; renderCase(); });
+    fWrap.appendChild(b);
+  });
+
+  renderStep2();
+  renderVerdict();
+  refreshCaseList();
+  updateCheckBtn();
+}
+
+function renderCase(){ renderStep2(); renderVerdict(); updateCheckBtn(); refreshFamilyBtns(); }
+
+function refreshFamilyBtns(){
+  const id=current, p=picks[id];
+  document.querySelectorAll('#opts-family button').forEach(b=>{
+    b.setAttribute('aria-pressed', b.textContent===p.family ? 'true':'false');
+  });
+}
+
+function renderStep2(){
+  const id=current, c=CASES.find(x=>x.id===id), p=picks[id];
+  const step2 = document.getElementById('step2-wrap');
+  const subWrap = document.getElementById('opts-sub');
+  subWrap.innerHTML='';
+  if(!p.family){ step2.style.display='none'; return; }
+  step2.style.display='';
+  document.getElementById('step2-lab').textContent = 'Step 2 · '+ (p.family===c.family ? c.axisLabel : 'Detail');
+  if(p.family !== c.family){
+    subWrap.innerHTML = `<div style="font-size:13px;color:var(--muted)">This case's event is answered by a different system — pick again in Step 1, or press Check to see why.</div>`;
+    p.sub=null;
+    return;
+  }
+  c.subs.forEach(s=>{
+    const b = el('button', null, s.label);
+    b.type='button';
+    b.setAttribute('aria-pressed', p.sub===s.id ? 'true':'false');
+    b.disabled = p.checked;
+    b.addEventListener('click', ()=>{ p.sub=s.id; refreshSubBtns(); updateCheckBtn(); });
+    subWrap.appendChild(b);
+  });
+}
+function refreshSubBtns(){
+  const p=picks[current];
+  document.querySelectorAll('#opts-sub button').forEach(b=>{
+    const s = CASES.find(x=>x.id===current).subs.find(s=>s.label===b.textContent);
+    b.setAttribute('aria-pressed', s && p.sub===s.id ? 'true':'false');
+  });
+}
+
+function updateCheckBtn(){
+  const p = picks[current];
+  const btn = document.getElementById('btn-check');
+  const ready = p && p.family && (p.family!==CASES.find(x=>x.id===current).family || p.sub);
+  btn.disabled = !ready || p.checked;
+}
+
+function renderVerdict(){
+  const v = document.getElementById('verdict');
+  const p = picks[current];
+  if(!p || !p.checked){ v.innerHTML=''; return; }
+  const c = CASES.find(x=>x.id===current);
+  const familyRight = p.family === c.family;
+  const sub = familyRight ? c.subs.find(s=>s.id===p.sub) : null;
+  const ok = familyRight && sub && sub.correct;
+  const box = el('div','verdict '+(ok?'good':'bad'));
+  if(ok){
+    box.innerHTML = `<div class="vh">✓ Correct — ${c.family}, ${sub.label}</div><p>${sub.why}</p>`;
+  } else {
+    let msg='';
+    if(!familyRight){
+      const rightSub = c.subs.find(s=>s.correct);
+      msg = `<p><b>System:</b> the topic's answer is <b>${c.family}</b>, not ${p.family}.</p><p>${rightSub.why}</p>`;
+    } else {
+      msg = `<p><b>Detail:</b> the system was right, but the topic's answer is <b>${c.subs.find(s=>s.correct).label}</b>.</p><p class="consequence">${sub ? sub.wrong : ''}</p>`;
+    }
+    box.innerHTML = `<div class="vh">✕ Not quite</div>${msg}`;
+  }
+  v.innerHTML='';
+  v.appendChild(box);
+}
+
+document.getElementById('btn-check').addEventListener('click', ()=>{
+  const c = CASES.find(x=>x.id===current), p = picks[current];
+  const familyRight = p.family === c.family;
+  const sub = familyRight ? c.subs.find(s=>s.id===p.sub) : null;
+  p.checked = true;
+  p.correct = !!(familyRight && sub && sub.correct);
+  document.querySelectorAll('#opts-family button, #opts-sub button').forEach(b=>b.disabled=true);
+  document.getElementById('btn-check').disabled=true;
+  renderVerdict();
+  refreshCaseList();
+});
+
+document.getElementById('btn-reset').addEventListener('click', ()=>{
+  if(!current) return;
+  picks[current] = {family:null, sub:null, checked:false, correct:false};
+  selectCase(current);
+});
+
+function buildMatrix(){
+  const t = document.getElementById('matrix');
+  const head = '<tr><th>System</th><th>Core role, per this topic</th></tr>';
+  const rows = MATRIX.map(m=>`<tr><td class="tech">${m.tech}</td><td>${m.core}</td></tr>`).join('');
+  t.innerHTML = head+rows;
+}
+
+buildCaseList();
+buildMatrix();
+selectCase('1');
+</script>
+</body>
+</html>
+
+</body></html>
