@@ -1,0 +1,744 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Converter Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&family=Merriweather:wght@700;900&display=swap">
+
+<style>
+:root{
+  --ground:#EDF1F6; --surface:#FFFFFF; --surface2:#E2EAF2; --raise:#F6F9FC;
+  --ink:#0C1C33; --ink2:#44586E; --ink3:#6C8098;
+  --line:#C5D3E1; --line2:#A7BBD0;
+  --accent:#0A6591; --accent-ink:#FFFFFF; --accent-soft:#D8EBF7;
+  --warn:#A4560B; --warn-soft:#FAEAD3;
+  --crit:#9B2C2C; --crit-soft:#F8E3E3;
+  --shadow:0 1px 2px rgba(12,28,51,.10), 0 10px 26px -14px rgba(12,28,51,.24);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0A1728; --surface:#112642; --surface2:#16324F; --raise:#14294A;
+    --ink:#FDFBF7; --ink2:#AEC0D6; --ink3:#7E93AD;
+    --line:#24446B; --line2:#2F5680;
+    --accent:#38BDF8; --accent-ink:#06243A; --accent-soft:#103351;
+    --warn:#FBBF24; --warn-soft:#3A2D0C;
+    --crit:#F87171; --crit-soft:#3B1717;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.72);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0A1728; --surface:#112642; --surface2:#16324F; --raise:#14294A;
+  --ink:#FDFBF7; --ink2:#AEC0D6; --ink3:#7E93AD;
+  --line:#24446B; --line2:#2F5680;
+  --accent:#38BDF8; --accent-ink:#06243A; --accent-soft:#103351;
+  --warn:#FBBF24; --warn-soft:#3A2D0C;
+  --crit:#F87171; --crit-soft:#3B1717;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.72);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1160px; margin:0 auto; padding-inline:16px; padding-block:28px 64px;}
+h1,h2,h3{font-family:Merriweather,Georgia,serif; text-wrap:balance; margin:0;}
+.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+
+header.top{
+  display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;
+  justify-content:space-between; border-bottom:2px solid var(--accent);
+  padding-bottom:18px; margin-bottom:26px;
+}
+header.top h1{font-size:clamp(26px,4.4vw,38px); font-weight:900; letter-spacing:-.01em;}
+header.top p{margin:6px 0 0; color:var(--ink2); max-width:62ch;}
+.eyebrow{
+  font-family:"JetBrains Mono",monospace; font-size:10.5px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:8px;
+}
+.themebtn{
+  background:var(--surface); color:var(--ink2); border:1px solid var(--line);
+  border-radius:999px; padding:7px 14px; font-size:12px; font-weight:500;
+  font-family:inherit; cursor:pointer; white-space:nowrap;
+}
+.themebtn:hover{border-color:var(--accent); color:var(--accent)}
+
+.step{display:flex; align-items:baseline; gap:10px; margin:0 0 13px;}
+.step .n{
+  font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700;
+  color:var(--accent-ink); background:var(--accent);
+  width:22px; height:22px; border-radius:5px;
+  display:inline-flex; align-items:center; justify-content:center;
+  flex:0 0 auto; transform:translateY(1px);
+}
+.step h2{font-size:18px;}
+.step .note{color:var(--ink3); font-size:12.5px; margin-left:auto; text-align:right;}
+
+.cols{display:grid; grid-template-columns:minmax(0,340px) minmax(0,1fr); gap:22px; align-items:start;}
+@media (max-width:880px){ .cols{grid-template-columns:1fr} }
+section{margin-bottom:30px;}
+
+/* ---------- technical log ---------- */
+.log{display:flex; flex-direction:column; gap:8px;}
+.snag{
+  text-align:left; cursor:pointer; font-family:inherit; font-size:14px; color:var(--ink);
+  background:var(--surface); border:1px solid var(--line);
+  border-left:3px solid var(--line2); border-radius:8px; padding:11px 12px; display:block;
+}
+.snag:hover{border-color:var(--line2)}
+.snag[aria-pressed="true"]{
+  border-color:var(--accent); border-left-color:var(--accent);
+  background:var(--accent-soft); box-shadow:var(--shadow);
+}
+.snag .ata{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  letter-spacing:.08em; color:var(--ink3); display:block; margin-bottom:5px;
+}
+.snag .st{font-weight:700; display:block; line-height:1.32; margin-bottom:3px;}
+.snag .done{
+  font-family:"JetBrains Mono",monospace; font-size:9.5px; letter-spacing:.06em;
+  color:var(--accent); display:block; margin-top:5px;
+}
+
+/* ---------- workspace ---------- */
+.panel{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:16px; box-shadow:var(--shadow);
+}
+.reportbox{
+  background:var(--surface2); border-left:3px solid var(--ink3);
+  border-radius:0 8px 8px 0; padding:12px 14px; margin-bottom:18px;
+}
+.reportbox .rh{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink3); margin-bottom:6px;
+}
+.reportbox p{margin:0; font-size:14.5px; line-height:1.55;}
+
+.tests{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:8px;}
+.test{
+  text-align:left; cursor:pointer; font-family:inherit; color:var(--ink);
+  background:var(--raise); border:1px solid var(--line); border-radius:8px;
+  padding:10px 11px; font-size:13px;
+}
+.test:hover{border-color:var(--accent)}
+.test[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft);}
+.test b{
+  font-family:"JetBrains Mono",monospace; font-size:12px; display:block;
+  margin-bottom:4px; letter-spacing:.02em;
+}
+.test span{color:var(--ink2); font-size:12px; line-height:1.4; display:block;}
+
+.actions{display:flex; flex-wrap:wrap; gap:9px; align-items:center; margin-top:14px;}
+.run{
+  font-family:inherit; font-size:14.5px; font-weight:700; cursor:pointer;
+  background:var(--accent); color:var(--accent-ink); border:1px solid var(--accent);
+  border-radius:8px; padding:11px 20px;
+}
+.run:hover{filter:brightness(1.08)}
+.run:disabled{opacity:.45; cursor:not-allowed; filter:none;}
+.ghost{
+  font-family:inherit; font-size:13px; cursor:pointer; color:var(--ink2);
+  background:transparent; border:1px solid var(--line); border-radius:8px; padding:10px 15px;
+}
+.ghost:hover{border-color:var(--accent); color:var(--accent)}
+
+/* ---------- terminal readout ---------- */
+.readout{
+  margin-top:16px; background:var(--surface2); border:1px solid var(--line);
+  border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 16px;
+}
+.rohead{
+  display:flex; flex-wrap:wrap; gap:8px; align-items:baseline;
+  border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:11px;
+  font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.rohead .rt{font-weight:700; color:var(--accent);}
+.rohead .rs{color:var(--ink3); margin-left:auto;}
+.entry{display:flex; gap:12px; padding:9px 0; border-bottom:1px dotted var(--line);}
+.entry:last-of-type{border-bottom:none; padding-bottom:0;}
+.entry .ei{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  color:var(--ink3); flex:0 0 68px; padding-top:3px; letter-spacing:.04em;
+}
+.entry .et{flex:1; font-size:14px; line-height:1.55;}
+.hint{margin:0; color:var(--ink3); font-size:13.5px; line-height:1.55;}
+
+/* ---------- disposition ---------- */
+.dispo{display:flex; flex-wrap:wrap; gap:9px; margin-top:8px;}
+.dbtn{
+  font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer;
+  background:var(--raise); color:var(--ink); border:1px solid var(--line2);
+  border-radius:8px; padding:10px 16px;
+}
+.dbtn:hover{border-color:var(--accent)}
+.dbtn[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft); color:var(--accent);}
+.stamp{
+  font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase; padding:6px 11px;
+  border:1.5px solid var(--warn); color:var(--warn); background:var(--warn-soft);
+  border-radius:4px; display:inline-block; margin-top:10px; transform:rotate(-1.2deg);
+}
+
+/* ---------- reveal ---------- */
+details.ref{
+  margin-top:18px; background:var(--surface); border:1px solid var(--line); border-radius:10px;
+}
+details.ref summary{
+  cursor:pointer; padding:13px 16px; font-weight:700; font-size:14px;
+  list-style:none; display:flex; align-items:center; gap:9px;
+}
+details.ref summary::-webkit-details-marker{display:none}
+details.ref summary::before{content:"+"; font-family:"JetBrains Mono",monospace; color:var(--accent); font-weight:700;}
+details.ref[open] summary::before{content:"\2212";}
+.body{padding:0 16px 16px;}
+.row{display:grid; grid-template-columns:186px 1fr; gap:14px; padding:10px 0; border-top:1px dotted var(--line);}
+.row:first-child{border-top:none;}
+.rl{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); padding-top:3px;
+}
+.rv{font-size:14px; line-height:1.55;}
+.locked{margin:0; color:var(--ink3); font-size:13.5px; line-height:1.55; padding:0 16px 16px;}
+@media (max-width:620px){ .row{grid-template-columns:1fr; gap:4px;} }
+
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:13px;}
+th,td{text-align:left; padding:9px 11px; border-bottom:1px solid var(--line); vertical-align:top;}
+th{
+  font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink3); font-weight:700; border-bottom:1px solid var(--line2);
+}
+td.tn{font-family:"JetBrains Mono",monospace; font-weight:700; white-space:nowrap;}
+.tablescroll{overflow-x:auto; padding:0 16px 16px;}
+footer.foot{margin-top:32px; color:var(--ink3); font-size:12.5px; line-height:1.6;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+<style>
+/* ---------- resolution lab additions ---------- */
+.chips{display:flex; flex-wrap:wrap; gap:7px;}
+.chip{
+  font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700; cursor:pointer;
+  background:var(--raise); color:var(--ink2); border:1px solid var(--line);
+  border-radius:7px; padding:8px 13px;
+}
+.chip:hover{border-color:var(--accent); color:var(--accent)}
+.chip[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft); color:var(--accent);}
+.ctl{margin-bottom:14px;}
+.ctl .cl{
+  font-family:"JetBrains Mono",monospace; font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink3); margin-bottom:7px;
+}
+.figs{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:6px;}
+.fig{background:var(--surface2); border:1px solid var(--line); border-radius:9px; padding:11px 13px;}
+.fig .fl{
+  font-family:"JetBrains Mono",monospace; font-size:9.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); margin-bottom:5px;
+}
+.fig .fv{font-family:"JetBrains Mono",monospace; font-size:19px; font-weight:700; color:var(--ink); line-height:1.15;}
+.fig .fn{color:var(--ink3); font-size:11.5px; margin-top:4px; line-height:1.4;}
+.twoway{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin-top:14px;}
+.way{border:1px solid var(--line2); border-radius:10px; padding:13px 14px; background:var(--raise);}
+.way h3{font-size:14px; margin-bottom:9px;}
+.way .wr{display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-top:1px dotted var(--line); font-size:13.5px;}
+.way .wr:first-of-type{border-top:none}
+.way .wr b{font-family:"JetBrains Mono",monospace; font-weight:700; white-space:nowrap;}
+.stair{width:100%; height:auto; display:block; margin-top:12px;}
+.stair .ax{fill:none; stroke:var(--line2); stroke-width:1.4}
+.stair .st{fill:none; stroke:var(--accent); stroke-width:2.2; stroke-linejoin:round}
+.stair .lb{font-family:"JetBrains Mono",monospace; font-size:10px; fill:var(--ink3)}
+.codetab{width:100%; min-width:0; font-size:12.5px;}
+.codetab td{padding:6px 10px}
+.compare{
+  margin-top:14px; background:var(--warn-soft); border:1px solid var(--warn);
+  border-radius:9px; padding:12px 14px; font-size:13.5px; line-height:1.55; color:var(--ink);
+}
+.compare b{color:var(--warn)}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <div class="eyebrow">Temasek Polytechnic &middot; Aircraft Electronics and Digital Systems &middot; Topic 3</div>
+    <h1>Converter Bench</h1>
+    <p>Two benches. On the first you set a converter up and read what it resolves. On the
+       second you choose a converter for an aircraft job and measure what it does. Neither
+       bench tells you whether your answer is right.</p>
+  </div>
+  <button class="themebtn" id="themebtn" type="button">Switch theme</button>
+</header>
+
+<!-- ============================================ BENCH 1 ============================ -->
+<section>
+  <div class="step"><span class="n">1</span><h2>Resolution bench</h2>
+    <span class="note">Set it up, then read the numbers off.</span></div>
+
+  <div class="cols">
+    <div class="panel">
+      <div class="ctl">
+        <div class="cl">Word length</div>
+        <div class="chips" id="bitchips"></div>
+      </div>
+      <div class="ctl" style="margin-bottom:0">
+        <div class="cl">Reference voltage</div>
+        <div class="chips" id="vchips"></div>
+      </div>
+      <svg class="stair" id="stair" viewBox="0 0 320 196" role="img" aria-label="Converter output staircase"></svg>
+    </div>
+
+    <div class="panel">
+      <div class="figs">
+        <div class="fig"><div class="fl">Output levels</div><div class="fv" id="fLevels">&mdash;</div>
+          <div class="fn" id="fLevelsN"></div></div>
+        <div class="fig"><div class="fl">Steps between them</div><div class="fv" id="fSteps">&mdash;</div>
+          <div class="fn" id="fStepsN"></div></div>
+        <div class="fig"><div class="fl">Highest code</div><div class="fv mono" id="fCode">&mdash;</div>
+          <div class="fn">all ones</div></div>
+      </div>
+
+      <div class="twoway">
+        <div class="way">
+          <h3>If one step = V<sub>ref</sub> &divide; 2<sup>n</sup></h3>
+          <div class="wr"><span>Step size</span><b id="aStep">&mdash;</b></div>
+          <div class="wr"><span>Output at the highest code</span><b id="aFs">&mdash;</b></div>
+          <div class="wr"><span>Short of V<sub>ref</sub> by</span><b id="aShort">&mdash;</b></div>
+        </div>
+        <div class="way">
+          <h3>If one step = V<sub>ref</sub> &divide; (2<sup>n</sup> &minus; 1)</h3>
+          <div class="wr"><span>Step size</span><b id="bStep">&mdash;</b></div>
+          <div class="wr"><span>Output at the highest code</span><b id="bFs">&mdash;</b></div>
+          <div class="wr"><span>Short of V<sub>ref</sub> by</span><b id="bShort">&mdash;</b></div>
+        </div>
+      </div>
+
+      <div class="compare" id="compare"></div>
+
+      <details class="ref" id="codeRef">
+        <summary>Code and output voltage, step by step</summary>
+        <div class="tablescroll">
+          <table class="codetab"><thead><tr>
+            <th>Binary input</th><th>Decimal</th><th>Output &mdash; V<sub>ref</sub>&divide;2<sup>n</sup></th>
+            <th>Output &mdash; V<sub>ref</sub>&divide;(2<sup>n</sup>&minus;1)</th>
+          </tr></thead><tbody id="codeBody"></tbody></table>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ BENCH 2 ============================ -->
+<section>
+  <div class="step"><span class="n">2</span><h2>Selection bench</h2>
+    <span class="note">One converter per job. You may re-run.</span></div>
+
+  <div class="cols">
+    <div>
+      <div class="step" style="margin-bottom:10px"><h2 style="font-size:15px">The jobs</h2></div>
+      <div class="log" id="joblist"></div>
+    </div>
+
+    <div class="panel">
+      <div class="reportbox">
+        <div class="rh" id="jobTag">&mdash;</div>
+        <p id="jobBrief">&mdash;</p>
+      </div>
+
+      <div class="tests" id="convlist"></div>
+
+      <div class="actions">
+        <button class="run" id="runbtn" type="button">Run functional check</button>
+        <button class="ghost" id="clearbtn" type="button">Clear readout</button>
+      </div>
+
+      <div class="readout">
+        <div class="rohead"><span class="rt">Test bench</span><span class="rs" id="roTag">&mdash;</span></div>
+        <div id="roBody"><p class="hint">Choose a converter above and run the check. The bench
+          reports what it measured &mdash; it does not tell you whether the choice suits the job.</p></div>
+      </div>
+
+      <div class="step" style="margin:20px 0 10px"><span class="n">3</span><h2>Record your decision</h2></div>
+      <p class="hint" style="margin-bottom:10px">On the evidence in front of you, would you fit this
+        converter to this job? Decide before you look at anything else.</p>
+      <div class="dispo">
+        <button class="dbtn" data-d="fit" type="button">Fit this converter</button>
+        <button class="dbtn" data-d="other" type="button">Choose another</button>
+      </div>
+      <div id="stampWrap"></div>
+
+      <details class="ref" id="reveal"><summary id="revSum">What this job actually demands</summary>
+        <div id="revBody"></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<details class="ref" id="typesRef">
+  <summary>The converter types</summary>
+  <div class="tablescroll">
+    <table><thead><tr><th>Converter</th><th>Direction</th><th>From the notes</th></tr></thead>
+      <tbody id="typesBody"></tbody></table>
+  </div>
+</details>
+
+<footer class="foot">
+  Built for the &ldquo;Brain before AI&rdquo; activity in Topic 3, Logic Circuits and Data
+  Converters. The bench reports what it measured. Whether a converter suits a job is your
+  judgement, and it is the point of the exercise.
+</footer>
+
+</div>
+
+<script>
+/* ============================ bench 1 : resolution ============================ */
+var BITS = [4, 6, 8, 10, 12];
+var VREFS = [5, 10, 28];
+var lab = { n: 8, v: 5 };
+
+function fmtV(x){
+  if (x >= 1) return x.toFixed(4).replace(/0+$/,'').replace(/\.$/,'') + ' V';
+  return (x * 1000).toFixed(3).replace(/0+$/,'').replace(/\.$/,'') + ' mV';
+}
+function ones(n){ var s = ''; for (var i = 0; i < n; i++) s += '1'; return group(s); }
+function group(s){ return s.replace(/(.{4})(?=.)/g, '$1 '); }
+function pad(x, n){ var s = x.toString(2); while (s.length < n) s = '0' + s; return group(s); }
+
+function chipRow(el, vals, cur, suffix, pick){
+  el.innerHTML = '';
+  vals.forEach(function(v){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = v + suffix;
+    b.setAttribute('aria-pressed', v === cur ? 'true' : 'false');
+    b.onclick = function(){ pick(v); };
+    el.appendChild(b);
+  });
+}
+
+function drawStair(n, v){
+  var svg = document.getElementById('stair');
+  var W = 320, H = 196, L = 16, B = 158, R = 306, T = 30;
+  var levels = Math.pow(2, n);
+  var show = Math.min(levels, 32);                 /* draw at most 32 treads */
+  var d = '', i;
+  for (i = 0; i < show; i++){
+    var x0 = L + (R - L) * (i / show), x1 = L + (R - L) * ((i + 1) / show);
+    var y = B - (B - T) * (i / (show - 1));
+    d += (i === 0 ? 'M' : 'L') + x0.toFixed(1) + ' ' + y.toFixed(1) +
+         'L' + x1.toFixed(1) + ' ' + y.toFixed(1);
+  }
+  svg.innerHTML =
+    '<path class="ax" d="M' + L + ' ' + T + 'V' + B + 'H' + R + '"/>' +
+    '<path class="st" d="' + d + '"/>' +
+    '<text class="lb" x="' + L + '" y="' + (T - 10) + '">one tread = ' + fmtV(v / levels) +
+      ', up to ' + fmtV(v * (levels - 1) / levels) + ' at code ' + (levels - 1) + '</text>' +
+    '<text class="lb" x="' + L + '" y="' + (B + 18) + '">code 0</text>' +
+    '<text class="lb" x="' + R + '" y="' + (B + 18) + '" text-anchor="end">code ' + (show - 1) + '</text>' +
+    '<text class="lb" x="' + ((L + R) / 2) + '" y="' + (B + 33) + '" text-anchor="middle">' +
+      (levels > show ? 'first ' + show + ' of ' + levels + ' levels' : levels + ' levels') + '</text>';
+}
+
+function renderLab(){
+  var n = lab.n, v = lab.v;
+  var levels = Math.pow(2, n), steps = levels - 1;
+  var sa = v / levels, sb = v / steps;
+  document.getElementById('fLevels').textContent = levels;
+  document.getElementById('fLevelsN').textContent = '2 to the power ' + n;
+  document.getElementById('fSteps').textContent = steps;
+  document.getElementById('fStepsN').textContent = 'one fewer than the levels';
+  document.getElementById('fCode').textContent = ones(Math.min(n, 8)) + (n > 8 ? '…' : '');
+  document.getElementById('aStep').textContent = fmtV(sa);
+  document.getElementById('aFs').textContent = fmtV(sa * steps);
+  document.getElementById('aShort').textContent = fmtV(v - sa * steps);
+  document.getElementById('bStep').textContent = fmtV(sb);
+  document.getElementById('bFs').textContent = fmtV(v);
+  document.getElementById('bShort').textContent = '0 V';
+
+  var cmp = document.getElementById('compare');
+  if (n === 8 && v === 5){
+    cmp.innerHTML = '<b>Compare with your notes.</b> The worked example in the lecture for an ' +
+      '8-bit converter on a 5 V reference gives a step size of 0.0195 V and an output of ' +
+      '4.980 V at code 1111 1111. Which of the two columns above did that example use?';
+  } else {
+    cmp.innerHTML = '<b>Set 8 bits and 5 V</b> to put this bench alongside the worked example ' +
+      'in your notes, and see which column it matches.';
+  }
+
+  var rows = [], k;
+  var last = steps;
+  var picks = [0, 1, 2, 3, 4, -1, last - 2, last - 1, last];
+  for (k = 0; k < picks.length; k++){
+    var i = picks[k];
+    if (i === -1){ rows.push('<tr><td class="tn">⋮</td><td class="tn">⋮</td><td class="tn">⋮</td><td class="tn">⋮</td></tr>'); continue; }
+    rows.push('<tr><td class="tn">' + pad(i, n) + '</td><td class="tn">' + i + '</td><td class="tn">' +
+              fmtV(sa * i) + '</td><td class="tn">' + fmtV(sb * i) + '</td></tr>');
+  }
+  document.getElementById('codeBody').innerHTML = rows.join('');
+
+  chipRow(document.getElementById('bitchips'), BITS, n, ' bits', function(x){ lab.n = x; renderLab(); });
+  chipRow(document.getElementById('vchips'), VREFS, v, ' V', function(x){ lab.v = x; renderLab(); });
+  drawStair(n, v);
+}
+
+/* ============================ bench 2 : selection ============================ */
+var CONV = {
+  BWL:  { name: 'Binary weighted ladder', dir: 'DAC',
+          notes: 'Simplest arrangement. Needs high precision resistors.' },
+  R2R:  { name: 'R-2R ladder', dir: 'DAC',
+          notes: 'Only two resistor values required.' },
+  RAMP: { name: 'Ramp generation', dir: 'ADC',
+          notes: 'Slow, and takes longer to convert a larger voltage.' },
+  SAR:  { name: 'Successive approximation', dir: 'ADC',
+          notes: 'Fast conversion time, which does not depend on the analogue voltage.' },
+  INT:  { name: 'Integration type', dir: 'ADC',
+          notes: 'High accuracy and better noise immunity. Slower than successive approximation.' }
+};
+var ORDER = ['BWL', 'R2R', 'RAMP', 'SAR', 'INT'];
+
+var JOBS = [
+  { id:'TAT', ata:'ATA 77', title:'Total air temperature probe to the engine control computer',
+    brief:'The probe output changes slowly. The bay is electrically noisy — both generators, ' +
+          'the ignition exciters and a fuel pump inverter share the same loom run. The computer ' +
+          'reads the temperature once every 100 ms and needs 12-bit resolution.',
+    dir:'ADC', n:12, v:5, budgetMs:100, noise:2,
+    demand:'12-bit resolution, one reading every 100 ms, in a bay with heavy electrical noise.',
+    limit:'Noise, not speed. 100 ms is a long time for any of the three converters; a reading ' +
+          'that jitters by several counts is the problem here.' },
+
+  { id:'RVDT', ata:'ATA 27', title:'Aileron position RVDT to the flight control computer',
+    brief:'The control law runs at 200 Hz, so the whole sample, convert and compute cycle must ' +
+          'fit inside 5 ms. Position is needed to 10 bits. The signal is filtered and the loom ' +
+          'is screened.',
+    dir:'ADC', n:10, v:5, budgetMs:5, noise:1,
+    demand:'10-bit resolution, a conversion completed well inside a 5 ms loop, every loop.',
+    limit:'Conversion time, and specifically whether it is predictable. A converter whose ' +
+          'conversion time depends on the input value cannot be scheduled in a fixed loop.' },
+
+  { id:'SERVO', ata:'ATA 22', title:'Autopilot command to an a.c. servo motor drive',
+    brief:'The autopilot computer issues a new 10-bit command word every millisecond. The drive ' +
+          'amplifier needs an analogue voltage. The unit is in the avionics bay on a screened feed.',
+    dir:'DAC', n:10, v:10, budgetMs:1, noise:1,
+    demand:'A 10-bit analogue output, updated every millisecond, accurate to better than one step.',
+    limit:'Resistor spread. At 10 bits a binary weighted ladder needs values from R to 512R, and ' +
+          'the tolerance on the largest one swamps the smallest step.' },
+
+  { id:'FUEL', ata:'ATA 28', title:'Fuel quantity word to a 16-segment cockpit gauge',
+    brief:'The gauge has sixteen segments, so four bits is all the resolution it can display. It ' +
+          'is updated twice a second. Cost and parts count matter more than precision here.',
+    dir:'DAC', n:4, v:5, budgetMs:500, noise:0,
+    demand:'A 4-bit analogue output, twice a second, at the lowest parts count.',
+    limit:'Nothing is stressed. At four bits the resistor spread is 8:1, which ordinary 1% parts ' +
+          'hold comfortably — so the simplest arrangement is not disqualified.' },
+
+  { id:'ALT', ata:'ATA 34', title:'Air data altitude output to a standby analogue display',
+    brief:'Altitude is held as a 12-bit word and must be presented as an analogue voltage, ' +
+          'refreshed every 2 ms, to better than half a step.',
+    dir:'DAC', n:12, v:5, budgetMs:2, noise:0,
+    demand:'A 12-bit analogue output to better than half a step, refreshed every 2 ms.',
+    limit:'Resistor spread again, and worse. At 12 bits a binary weighted ladder spans R to ' +
+          '2048R, and no ordinary tolerance holds the top resistor to within one bottom step.' },
+
+  { id:'CABIN', ata:'ATA 21', title:'Cabin temperature sensor to the air conditioning controller',
+    brief:'Cabin temperature drifts slowly and is read twice a second to 8 bits. The sensor loom ' +
+          'runs beside the 400 Hz galley feeders and picks up interference all the way.',
+    dir:'ADC', n:8, v:5, budgetMs:500, noise:2,
+    demand:'8-bit resolution, two readings a second, on a loom running beside a 400 Hz feeder.',
+    limit:'Noise rejection. There is half a second available per reading, so speed is irrelevant ' +
+          'and a converter that averages the interference away has nothing to lose.' }
+];
+
+var st = { job: JOBS[0].id, conv: null, ran: {}, dispo: {} };
+function job(){ for (var i = 0; i < JOBS.length; i++) if (JOBS[i].id === st.job) return JOBS[i]; }
+
+function fmtT(us){
+  if (us >= 1000) return (us / 1000).toFixed(us >= 10000 ? 0 : 2).replace(/\.?0+$/,'') + ' ms';
+  return us.toFixed(us < 10 ? 1 : 0) + ' µs';
+}
+
+/* the bench: measured behaviour, never a verdict */
+function measure(j, key){
+  var c = CONV[key], levels = Math.pow(2, j.n), step = j.v / levels, out = [];
+  if (c.dir !== j.dir){
+    out.push(['direction', 'The ' + c.name + ' is a ' + c.dir + '. This job converts in the other ' +
+      'direction — it needs a ' + j.dir + '. The bench cannot run the check.']);
+    return out;
+  }
+  if (c.dir === 'ADC'){
+    var us = key === 'RAMP' ? levels * 1.0 : key === 'SAR' ? j.n * 1.0 : 20000;
+    out.push(['conversion', 'A full-scale input converted in ' + fmtT(us) + '. The job allows ' +
+      fmtT(j.budgetMs * 1000) + ' per reading.']);
+    if (key === 'RAMP'){
+      out.push(['linearity', 'A quarter-scale input converted in ' + fmtT(us / 4) + '. The ' +
+        'conversion time tracked the size of the input voltage.']);
+    } else if (key === 'SAR'){
+      out.push(['linearity', 'A quarter-scale input also converted in ' + fmtT(us) + '. The ' +
+        'conversion time did not change with the input voltage.']);
+    } else {
+      out.push(['linearity', 'Every input took the same ' + fmtT(us) + ', set by the integrating ' +
+        'period rather than by the signal.']);
+    }
+    var counts = key === 'INT' ? 0 : (key === 'RAMP' ? j.noise * 4 : j.noise * 3);
+    out.push(['noise', counts === 0
+      ? 'With the generators and the inverter running, sixty readings of a steady input returned ' +
+        'the same code every time.'
+      : 'With the generators and the inverter running, sixty readings of a steady input spread ' +
+        'over ±' + counts + ' counts, which is ±' + fmtV2(counts * step) + ' at the input.']);
+  } else {
+    var spread = key === 'BWL' ? Math.pow(2, j.n - 1) : 2;
+    var errLsb = key === 'BWL' ? 0.01 * Math.pow(2, j.n - 1) : 0.5;
+    var settle = key === 'BWL' ? 2.0 : 0.5;
+    out.push(['ladder', 'The ladder was built with resistor values spanning R to ' + spread +
+      'R — a spread of ' + spread + ':1.']);
+    out.push(['accuracy', 'With 1% resistors fitted, the worst-case output error measured ' +
+      '±' + (errLsb < 1 ? errLsb.toFixed(1) : Math.round(errLsb)) + ' steps, against a step ' +
+      'size of ' + fmtV2(step) + '.']);
+    out.push(['settling', 'The output settled in ' + fmtT(settle) + '. The job updates every ' +
+      fmtT(j.budgetMs * 1000) + '.']);
+  }
+  return out;
+}
+function fmtV2(x){
+  if (x >= 1) return x.toFixed(3).replace(/0+$/,'').replace(/\.$/,'') + ' V';
+  return (x * 1000).toFixed(x < 0.001 ? 3 : 2).replace(/0+$/,'').replace(/\.$/,'') + ' mV';
+}
+
+function renderJobs(){
+  var el = document.getElementById('joblist'); el.innerHTML = '';
+  JOBS.forEach(function(j){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'snag';
+    b.setAttribute('aria-pressed', j.id === st.job ? 'true' : 'false');
+    var done = '';
+    var ranN = Object.keys(st.ran[j.id] || {}).length;
+    if (ranN) done = '<span class="done">' + ranN + ' check' + (ranN > 1 ? 's' : '') + ' run' +
+      (st.dispo[j.id] ? ' · decided' : '') + '</span>';
+    b.innerHTML = '<span class="ata">' + j.ata + ' &middot; ' + j.dir + ' required</span>' +
+      '<span class="st">' + j.title + '</span>' + done;
+    b.onclick = function(){ st.job = j.id; st.conv = null; redraw(); };
+    el.appendChild(b);
+  });
+}
+
+function renderConvs(){
+  var el = document.getElementById('convlist'); el.innerHTML = '';
+  ORDER.forEach(function(k){
+    var c = CONV[k];
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'test'; b.setAttribute('data-c', k);
+    b.setAttribute('aria-pressed', k === st.conv ? 'true' : 'false');
+    b.innerHTML = '<b>' + c.name + (k === st.conv ? ' ✓' : '') + '</b><span>' +
+      c.dir + ' · ' + c.notes + '</span>';
+    b.onclick = function(){ st.conv = k; redraw(); };
+    el.appendChild(b);
+  });
+}
+
+function ranList(){ return Object.keys(st.ran[st.job] || {}); }
+
+function renderReadout(){
+  var j = job(), body = document.getElementById('roBody');
+  document.getElementById('roTag').textContent = j.ata + ' · ' + j.id;
+  var keys = ranList();
+  if (!keys.length){
+    body.innerHTML = '<p class="hint">Choose a converter above and run the check. The bench ' +
+      'reports what it measured — it does not tell you whether the choice suits the job.</p>';
+    return;
+  }
+  var html = '';
+  keys.forEach(function(k){
+    html += '<div class="entry"><div class="ei">' + k + '</div><div class="et"><b>' +
+      CONV[k].name + '</b></div></div>';
+    st.ran[st.job][k].forEach(function(row){
+      html += '<div class="entry"><div class="ei">' + row[0] + '</div><div class="et">' +
+        row[1] + '</div></div>';
+    });
+  });
+  body.innerHTML = html;
+}
+
+function renderDispo(){
+  var d = st.dispo[st.job];
+  var btns = document.querySelectorAll('.dbtn');
+  for (var i = 0; i < btns.length; i++){
+    btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-d') === d ? 'true' : 'false');
+  }
+  var w = document.getElementById('stampWrap');
+  w.innerHTML = d ? '<div class="stamp">' + (d === 'fit' ? 'converter fitted' : 'choice rejected') +
+    ' · ' + ranList().length + ' check' + (ranList().length > 1 ? 's' : '') + ' run</div>' : '';
+}
+
+function renderReveal(){
+  var j = job();
+  var open = ranList().length > 0 && !!st.dispo[st.job];
+  var sum = document.getElementById('revSum'), body = document.getElementById('revBody');
+  sum.textContent = 'What this job actually demands — ' + j.title;
+  if (!open){
+    document.getElementById('reveal').open = false;
+    body.innerHTML = '<p class="locked">Run at least one check on this job and record a decision. ' +
+      'This opens afterwards, so that the reading is yours and not the bench’s.</p>';
+    return;
+  }
+  var rows =
+    '<div class="body">' +
+      '<div class="row"><div class="rl">The requirement</div><div class="rv">' + j.demand + '</div></div>' +
+      '<div class="row"><div class="rl">What decides it</div><div class="rv">' + j.limit + '</div></div>' +
+      '<div class="row"><div class="rl">What you measured</div><div class="rv">' +
+        'You ran ' + ranList().map(function(k){ return CONV[k].name; }).join(', ') +
+        ' on this job and recorded “' + (st.dispo[st.job] === 'fit' ? 'fit this converter' :
+        'choose another') + '”. Set your reasoning against the two rows above; the bench has ' +
+        'no opinion on it.</div></div>' +
+    '</div>';
+  body.innerHTML = rows;
+}
+
+function renderTypes(){
+  var b = document.getElementById('typesBody'); var h = '';
+  ORDER.forEach(function(k){
+    h += '<tr><td class="tn">' + CONV[k].name + '</td><td class="tn">' + CONV[k].dir +
+      '</td><td>' + CONV[k].notes + '</td></tr>';
+  });
+  b.innerHTML = h;
+}
+
+function redraw(){
+  var j = job();
+  document.getElementById('jobTag').textContent = j.ata + ' · ' + j.dir + ' required · ' +
+    j.n + ' bits';
+  document.getElementById('jobBrief').textContent = j.brief;
+  document.getElementById('runbtn').disabled = !st.conv;
+  renderJobs(); renderConvs(); renderReadout(); renderDispo(); renderReveal();
+}
+
+document.getElementById('runbtn').onclick = function(){
+  if (!st.conv) return;
+  if (!st.ran[st.job]) st.ran[st.job] = {};
+  st.ran[st.job][st.conv] = measure(job(), st.conv);
+  redraw();
+};
+document.getElementById('clearbtn').onclick = function(){
+  delete st.ran[st.job]; delete st.dispo[st.job]; redraw();
+};
+var dbtns = document.querySelectorAll('.dbtn');
+for (var i = 0; i < dbtns.length; i++){
+  dbtns[i].onclick = (function(el){
+    return function(){ st.dispo[st.job] = el.getAttribute('data-d'); redraw(); };
+  })(dbtns[i]);
+}
+
+document.getElementById('themebtn').onclick = function(){
+  var cur = document.documentElement.getAttribute('data-theme');
+  if (!cur){
+    cur = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+};
+
+renderLab();
+renderTypes();
+redraw();
+</script>
+
+</body></html>
