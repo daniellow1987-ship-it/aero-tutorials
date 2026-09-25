@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Learning with AI — Interactive Tutorials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F5F7F7; --surface:#FFFFFF; --sunk:#EDF1F2;
+  --ink:#16212B; --muted:#5C6B77; --faint:#8598A4;
+  --rail:#D7E0E3; --rail-soft:#E7EDEF;
+  --accent:#0E7C96; --accent-soft:#DCEEF3;
+  --warn:#9A6100; --warn-soft:#F7EBD6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+    --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+    --rail:#27343E; --rail-soft:#1F2B34;
+    --accent:#45B4D0; --accent-soft:#12303A;
+    --warn:#E0A33C; --warn-soft:#2E2612;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F161B; --surface:#17212A; --sunk:#131C23;
+  --ink:#E4ECF1; --muted:#95A7B3; --faint:#6F8494;
+  --rail:#27343E; --rail-soft:#1F2B34;
+  --accent:#45B4D0; --accent-soft:#12303A;
+  --warn:#E0A33C; --warn-soft:#2E2612;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif; font-size:15px; line-height:1.5;
+  padding-inline:16px; padding-block:28px 48px}
+.wrap{max-width:900px; margin:0 auto}
+h1,h2{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif; margin:0; text-wrap:balance}
+h1{font-size:clamp(24px,4.4vw,34px); font-weight:700; letter-spacing:-.015em}
+.eyebrow{font-family:"IBM Plex Sans Condensed",sans-serif; font-size:11.5px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:6px}
+.sub{color:var(--muted); font-size:14.5px; max-width:64ch; margin:8px 0 26px}
+.topic{margin-bottom:22px}
+.topic h2{font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--muted); padding-bottom:7px; border-bottom:1px solid var(--rail-soft); margin-bottom:10px}
+.card{display:block; text-decoration:none; color:inherit;
+  background:var(--surface); border:1px solid var(--rail); border-radius:9px;
+  padding:13px 15px; margin-bottom:8px; transition:border-color .12s, transform .12s}
+.card:hover{border-color:var(--accent); transform:translateY(-1px)}
+.card .t{font-weight:600; font-size:15.5px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.card .d{color:var(--muted); font-size:13.5px; margin-top:3px}
+.pill{font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; border-radius:20px; padding:2px 8px}
+.pill.cur{background:var(--accent-soft); color:var(--accent)}
+.pill.old{background:var(--warn-soft); color:var(--warn)}
+.foot{margin-top:28px; font-size:12.5px; color:var(--faint); line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Temasek Polytechnic · Aerospace Electronics</div>
+  <h1>Learning with AI — Interactive Tutorials</h1>
+  <p class="sub">Quick-access links to each topic's interactive activity. Links open directly in the browser — no login required. Topics 3 and 10 have two builds each; use the one marked <b>current</b> unless you prefer the earlier version.</p>
+
+  <section class="topic">
+    <h2>Topic 2 · Servomechanisms</h2>
+    <a class="card" href="synchro-bench/">
+      <div class="t">Synchro Bench</div>
+      <div class="d">Pick an aircraft job, build the synchro team, run a functional check on the bench.</div>
+    </a>
+  </section>
+
+  <section class="topic">
+    <h2>Topic 3 · Data Converters</h2>
+    <a class="card" href="data-converter-bench/">
+      <div class="t">Data Converter Bench <span class="pill cur">current</span></div>
+      <div class="d">Interactive ADC/DAC bench — set inputs, watch quantisation and conversion in real time.</div>
+    </a>
+    <a class="card" href="converter-bench/">
+      <div class="t">Converter Bench <span class="pill old">earlier version</span></div>
+      <div class="d">Resolution bench + a converter-selection bench — an earlier build of the same activity.</div>
+    </a>
+  </section>
+
+  <section class="topic">
+    <h2>Topic 5 · Data Buses</h2>
+    <a class="card" href="which-field/">
+      <div class="t">Which Field?</div>
+      <div class="d">Decode/encode real ARINC 429 words — identify the field and its value across 9 cases.</div>
+    </a>
+  </section>
+
+  <section class="topic">
+    <h2>Topic 9 · Electronic Displays</h2>
+    <a class="card" href="display-selector/">
+      <div class="t">Display Technology Selector</div>
+      <div class="d">Predict, then verify: pick the display family and sub-type for 8 real avionics jobs.</div>
+    </a>
+  </section>
+
+  <section class="topic">
+    <h2>Topic 10 · Electronic Instruments &amp; Digital Aircraft Systems</h2>
+    <a class="card" href="which-system/">
+      <div class="t">Which System? <span class="pill cur">current</span></div>
+      <div class="d">Identify the responsible aircraft system and specific detail for 9 flight-deck events.</div>
+    </a>
+    <a class="card" href="bite-console/">
+      <div class="t">BITE Console <span class="pill old">earlier version</span></div>
+      <div class="d">Work a technical-log snag with BITE tests, then decide release or investigate.</div>
+    </a>
+  </section>
+
+  <p class="foot">Built for the "Brain before AI" tutorial activities. Each page is self-contained and works offline once loaded.</p>
+</div>
+</body>
+</html>
